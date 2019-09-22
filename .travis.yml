@@ -1,0 +1,28 @@
+language: go
+go:
+  - 1.13.x
+addons:
+  apt:
+    packages:
+      - rpm
+      - snapd
+env:
+  global:
+    - 'PATH=/snap/bin:$PATH'
+    - GO111MODULE=on
+services:
+  - docker
+install:
+  - 'sudo snap install snapcraft --classic'
+  - 'curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0'
+before_script: make info VERSION=${TRAVIS_BRANCH}
+script: make test && make lint
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -c
+deploy:
+  - provider: script
+    skip_cleanup: true
+    script: bash ./build/ci/deploy.sh
+    on:
+      tags: true
+      condition: '$TRAVIS_OS_NAME = linux'

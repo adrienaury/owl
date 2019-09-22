@@ -1,57 +1,37 @@
 # Owl
 
-Owl is a command line interface to interact with a Ldap database.
+Owl is a command line interface to interact with LDAP.
 
 ## Example
 
 ```bash
-owl connect :url
-owl use :basedn
-owl search :filter
-owl add
-owl delete
-owl modify
-owl rename
-owl disconnect
+owl login ${server} -u ${user}
+owl use ${basedn}
+owl get users
 ```
 
-## Architecture
+## Installation
 
-## Algo
+Download the latest version for your OS from the [release page](https://github.com/adrienaury/owl/releases).
 
-### Login
+## Contribute
 
-1. Load session
-2. Complete user input
-   1. Server URL
-      1. Valeur passée en argument ? => oui: 2.2
-      2. Valeur passée par flag ? => oui: 2.2
-      3. Valeur présente dans session ? => oui: 2.2
-      4. Terminal ? => oui: 2.2
-      5. Erreur : server doit être spécifié
-   2. Username
-      1. Valeur passée par flag ? => oui: 2.3
-      2. Valeur présente dans session ? => oui: 2.3
-      3. Terminal ? => oui: 2.3
-      4. Erreur : username doit être spécifié
-   3. Password
-      1. Valeur passée par flag ? => oui: 3
-      2. Valeur présente dans coffre-fort ? => oui: 3
-      3. Terminal ? => oui: 3
-      4. Erreur : password doit être spécifié
-3. Normalize inputs
-   1. Server URL
-4. Validate inputs
-   1. Nombre d'arguments
-   2. Serveur passé qu'une seule fois
-5. Essayer de s'authentifier
-   1. Invalid credentials et terminal ? => oui: 6
-   2. Invalid credentials et pas terminal ? => oui: 7
-   3. Autre erreur ? => oui: 7
-   4. OK ? => oui: 8
-6. Retry avec nouvelles valeurs
-   1. Demander username et password => 5
-7. Afficher message erreur
-8. Mettre à jour
-   1. Session
-   2. Coffre-fort
+Contributions to this project are very welcome.
+
+If you want to contribute, please check CONTRIBUTING.md
+
+## Links
+
+- Issue Tracker: github.com/adrienaury/mailmock/issues
+- Source Code: github.com/adrienaury/mailmock
+
+## Support
+
+If you are having issues, please let me know.
+I'm Adrien and my mail is adrien.aury@gmail.com
+
+## License
+
+### Main license
+
+The project is licensed under the [MIT License](https://opensource.org/licenses/MIT).

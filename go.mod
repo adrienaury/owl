@@ -9,6 +9,7 @@ require (
 	github.com/docker/docker-credential-helpers v0.6.3
 	github.com/google/go-cmp v0.3.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/russross/blackfriday v1.5.2
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/spf13/afero v1.2.2 // indirect
