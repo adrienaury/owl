@@ -8,6 +8,7 @@ import (
 	"github.com/adrienaury/owl/pkg/helpers/credentials"
 	"github.com/adrienaury/owl/pkg/helpers/errutil"
 	"github.com/adrienaury/owl/pkg/helpers/options"
+	"github.com/adrienaury/owl/pkg/helpers/policies"
 	"github.com/adrienaury/owl/pkg/helpers/templates"
 	"gopkg.in/ldap.v3"
 
@@ -65,13 +66,23 @@ func (o *Options) Run() error {
 		return err
 	}
 
-	sr, err := conn.Search(ldap.NewSearchRequest("dc=example,dc=org", ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false, "(objectClass=*)", []string{"cn"}, nil))
+	sr, err := conn.Search(
+		ldap.NewSearchRequest(
+			"dc=example,dc=org",
+			ldap.ScopeWholeSubtree,
+			ldap.NeverDerefAliases,
+			0, 0, false,
+			policies.NamedFilters["all"],
+			policies.DefaultPolicy.Attributes,
+			nil,
+		),
+	)
 	if err != nil {
 		return err
 	}
 
 	for _, entry := range sr.Entries {
-		fmt.Printf("%s: %v\n", entry.DN, entry.GetAttributeValue("cn"))
+		fmt.Fprintf(o.Out, "%s: %v\n", entry.DN, entry.GetAttributeValue("cn"))
 	}
 
 	err = o.SaveSession()

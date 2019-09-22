@@ -70,7 +70,7 @@ func PromptForBool(r io.Reader, w io.Writer, format string, a ...interface{}) bo
 	case "0", "f", "false", "n", "no":
 		return false
 	}
-	fmt.Println("Please enter 'yes' or 'no'.")
+	fmt.Fprintln(w, "Please enter 'yes' or 'no'.")
 	return PromptForBool(r, w, format, a...)
 }
 

@@ -21,6 +21,12 @@ func init() {
 		os.Exit(1)
 	}
 
+	err = os.Mkdir(home+"/.owl", 0644)
+	if err != nil && !os.IsExist(err) {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
 	Home = path.Join(home, ".owl")
 	Session = path.Join(Home, "session.yaml")
 }
