@@ -9,4 +9,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned for 0.1.0
 
-- Login command
+- Implement login command (ldap protocol)
+- Implement get command

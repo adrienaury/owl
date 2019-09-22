@@ -42,5 +42,9 @@ func checkErr(err error, handleErr func(string, int)) {
 		return
 	}
 
+	if err == ErrExit {
+		os.Exit(DefaultErrorExitCode)
+	}
+
 	handleErr(err.Error(), DefaultErrorExitCode)
 }

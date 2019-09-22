@@ -26,13 +26,24 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/adrienaury/owl/pkg/cli/get"
 	"github.com/adrienaury/owl/pkg/cli/login"
+	"github.com/adrienaury/owl/pkg/cli/version"
 	"github.com/adrienaury/owl/pkg/helpers/options"
 	"github.com/adrienaury/owl/pkg/helpers/templates"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
+)
+
+// Provisioned by ldflags
+// nolint: gochecknoglobals
+var (
+	vers      string
+	commit    string
+	buildDate string
+	builtBy   string
 )
 
 var cfgFile string
@@ -79,7 +90,9 @@ func init() {
 	// when this action is called directly.
 	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	rootCmd.AddCommand(login.NewCommand("login", options.NewStandardIOStreams()))
+	rootCmd.AddCommand(version.NewCommand("owl", vers, commit, buildDate, os.Stdout))
+	rootCmd.AddCommand(login.NewCommand("owl", options.NewStandardIOStreams()))
+	rootCmd.AddCommand(get.NewCommand("owl", options.NewStandardIOStreams()))
 }
 
 // initConfig reads in config file and ENV variables if set.
