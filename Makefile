@@ -5,7 +5,7 @@ SHELL := /bin/bash # Use bash syntax
 # Build variables
 BUILD_DIR ?= .target
 VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || git symbolic-ref -q --short HEAD)
-COMMIT_HASH ?= $(shell git rev-parse --short HEAD 2>/dev/null)
+COMMIT_HASH ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
 BUILD_BY ?= $(shell git config user.email)
 LDFLAGS += -X main.tag=${VERSION} -X main.commit=${COMMIT_HASH} -X main.buildDate=${BUILD_DATE} -X main.builtBy=${BUILD_BY}
