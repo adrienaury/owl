@@ -7,5 +7,5 @@ type Policy struct {
 
 // DefaultPolicy is used when no policy is configured
 var DefaultPolicy = Policy{
-	Attributes: []string{"cn", "sn", "gn", "email"},
+	Attributes: []string{"cn", "description"},
 }

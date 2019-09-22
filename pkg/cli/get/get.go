@@ -1,6 +1,7 @@
 package get
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/adrienaury/owl/pkg/helpers/errutil"
 	"github.com/adrienaury/owl/pkg/helpers/options"
 	"github.com/adrienaury/owl/pkg/helpers/policies"
+	"github.com/adrienaury/owl/pkg/helpers/printer"
 	"github.com/adrienaury/owl/pkg/helpers/templates"
 	"gopkg.in/ldap.v3"
 
@@ -34,7 +36,7 @@ func NewCommand(fullName string, streams options.IOStreams) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			cmdutil.CheckErr(o.LoadSession(cmd, args))
 
-			if err := o.Run(); errutil.IsUnauthorized(err) {
+			if err := o.Run(args); errutil.IsUnauthorized(err) {
 				fmt.Fprintln(streams.Out, "Login failed (401 Unauthorized)")
 				fmt.Fprintln(streams.Out, "Verify you have provided correct credentials.")
 
@@ -50,7 +52,13 @@ func NewCommand(fullName string, streams options.IOStreams) *cobra.Command {
 }
 
 // Run contains all the necessary functionality for the cli get command
-func (o *Options) Run() error {
+func (o *Options) Run(args []string) error {
+	if len(args) != 1 {
+		return errors.New("Require exactly 1 argument : filter")
+	}
+
+	filter := args[0]
+
 	conn, err := ldap.DialURL(o.Session.Server)
 	if err != nil {
 		return err
@@ -72,8 +80,8 @@ func (o *Options) Run() error {
 			ldap.ScopeWholeSubtree,
 			ldap.NeverDerefAliases,
 			0, 0, false,
-			policies.NamedFilters["all"],
-			policies.DefaultPolicy.Attributes,
+			policies.NamedFilters[filter],
+			policies.NamedFiltersAttributes[filter],
 			nil,
 		),
 	)
@@ -81,9 +89,18 @@ func (o *Options) Run() error {
 		return err
 	}
 
+	headers := policies.NamedFiltersAttributes[filter]
+	data := [][]string{}
 	for _, entry := range sr.Entries {
-		fmt.Fprintf(o.Out, "%s: %v\n", entry.DN, entry.GetAttributeValue("cn"))
+		dataline := []string{
+			entry.DN,
+		}
+		for _, attr := range policies.NamedFiltersAttributes[filter][1:] {
+			dataline = append(dataline, entry.GetAttributeValue(attr))
+		}
+		data = append(data, dataline)
 	}
+	printer.PrintData(o.Out, headers, data)
 
 	err = o.SaveSession()
 	if err != nil {
