@@ -40,7 +40,7 @@ import (
 // Provisioned by ldflags
 // nolint: gochecknoglobals
 var (
-	vers      string
+	tag       string
 	commit    string
 	buildDate string
 	builtBy   string
@@ -90,7 +90,7 @@ func init() {
 	// when this action is called directly.
 	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	rootCmd.AddCommand(version.NewCommand("owl", vers, commit, buildDate, os.Stdout))
+	rootCmd.AddCommand(version.NewCommand("owl", tag, commit, buildDate, os.Stdout))
 	rootCmd.AddCommand(login.NewCommand("owl", options.NewStandardIOStreams()))
 	rootCmd.AddCommand(get.NewCommand("owl", options.NewStandardIOStreams()))
 }

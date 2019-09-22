@@ -15,7 +15,7 @@ func NewCommand(fullName string, version string, commit string, buildDate string
 		Short: "Display version",
 		Long:  "Display version",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Fprintf(out, "%s %v\n%v\n%v\n", fullName, version, commit, buildDate)
+			fmt.Fprintf(out, "%s %v %v\n%v\n", fullName, version, commit, buildDate)
 		},
 	}
 
