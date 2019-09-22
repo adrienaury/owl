@@ -1,6 +1,7 @@
 package login
 
 import (
+	"github.com/adrienaury/owl/pkg/helpers/credentials"
 	"github.com/adrienaury/owl/pkg/helpers/options"
 	"github.com/adrienaury/owl/pkg/helpers/paths"
 	"github.com/adrienaury/owl/pkg/helpers/session"
@@ -51,6 +52,10 @@ func (o *Options) LoadSession(cmd *cobra.Command, args []string) error {
 
 // SaveSession all the information present in this helper to the session file.
 func (o *Options) SaveSession() error {
+	err := credentials.SetCredentials(o.Session.Server, o.Session.Username, o.Password)
+	if err != nil {
+		return err
+	}
 	return o.Session.Dump(paths.Session)
 }
 

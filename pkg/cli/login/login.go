@@ -6,6 +6,7 @@ import (
 
 	"github.com/adrienaury/owl/pkg/helpers/cmdutil"
 	"github.com/adrienaury/owl/pkg/helpers/errutil"
+	"github.com/adrienaury/owl/pkg/helpers/normalizer"
 	"github.com/adrienaury/owl/pkg/helpers/options"
 	"github.com/adrienaury/owl/pkg/helpers/templates"
 
@@ -68,10 +69,15 @@ func (o *Options) Run() error {
 		return err
 	}
 
-	o.Session.Server = o.Server
+	normalizedURL, err := normalizer.NormalizeLdapServerURL(o.Server)
+	if err != nil {
+		return err
+	}
+
+	o.Session.Server = normalizedURL
 	o.Session.Username = o.Username
 
-	err := o.SaveSession()
+	err = o.SaveSession()
 	if err != nil {
 		return err
 	}

@@ -3,6 +3,7 @@ package credentials
 import (
 	"runtime"
 
+	"github.com/adrienaury/owl/pkg/helpers/normalizer"
 	"github.com/docker/docker-credential-helpers/client"
 	"github.com/docker/docker-credential-helpers/credentials"
 )
@@ -23,8 +24,12 @@ func init() {
 
 // SetCredentials store credentials in a secure vault
 func SetCredentials(url string, user string, password string) error {
+	normalizedURL, err := normalizer.NormalizeLdapServerURLWithCred(url, user)
+	if err != nil {
+		return err
+	}
 	c := &credentials.Credentials{
-		ServerURL: url + ":" + user,
+		ServerURL: normalizedURL,
 		Username:  user,
 		Secret:    password,
 	}
@@ -33,7 +38,12 @@ func SetCredentials(url string, user string, password string) error {
 
 // GetCredentials retrieve credentials from a secure vault
 func GetCredentials(url string, user string) (*credentials.Credentials, error) {
-	storedCreds, err := client.Get(nativeStore, url+":"+user)
+	normalizedURL, err := normalizer.NormalizeLdapServerURLWithCred(url, user)
+	if err != nil {
+		return nil, err
+	}
+
+	storedCreds, err := client.Get(nativeStore, normalizedURL)
 	if err != nil {
 		return nil, err
 	}
