@@ -56,6 +56,8 @@ func (o *Options) authenticateToServer(conn *ldap.Conn) error {
 	if err != nil {
 		if term.IsTerminal(o.In) {
 			fmt.Fprintf(o.Out, "Invalid credentials!\n")
+			o.Username = ""
+			o.Password = ""
 			for !o.usernameProvided() {
 				o.Username = term.PromptForString(o.In, o.Out, "Username: ")
 			}

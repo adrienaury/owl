@@ -68,6 +68,9 @@ func (o *Options) Run() error {
 		return err
 	}
 
+	o.Session.Server = o.Server
+	o.Session.Username = o.Username
+
 	err := o.SaveSession()
 	if err != nil {
 		return err
