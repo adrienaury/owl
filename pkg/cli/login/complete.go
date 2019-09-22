@@ -63,7 +63,7 @@ func (o *Options) completeUsername(cmd *cobra.Command, args []string) error {
 
 func (o *Options) completePassword(cmd *cobra.Command, args []string) error {
 	if !o.passwordProvided() {
-		if creds, err := credentials.GetCredentials(o.Username, o.Server); err == nil {
+		if creds, err := credentials.GetCredentials(o.Server, o.Username); err == nil {
 			o.Password = creds.Secret
 		} else if credentials.IsErrCredentialsNotFound(err) {
 			if term.IsTerminal(o.In) {
