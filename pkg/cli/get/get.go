@@ -9,6 +9,7 @@ import (
 	"github.com/adrienaury/owl/pkg/helpers/credentials"
 	"github.com/adrienaury/owl/pkg/helpers/errutil"
 	"github.com/adrienaury/owl/pkg/helpers/options"
+	"github.com/adrienaury/owl/pkg/helpers/paths"
 	"github.com/adrienaury/owl/pkg/helpers/policies"
 	"github.com/adrienaury/owl/pkg/helpers/printer"
 	"github.com/adrienaury/owl/pkg/helpers/templates"
@@ -59,6 +60,11 @@ func (o *Options) Run(args []string) error {
 
 	filter := args[0]
 
+	policies, err := policies.Get(paths.Home + "/policies.yaml")
+	if err != nil {
+		return err
+	}
+
 	conn, err := ldap.DialURL(o.Session.Server)
 	if err != nil {
 		return err
@@ -74,33 +80,35 @@ func (o *Options) Run(args []string) error {
 		return err
 	}
 
-	sr, err := conn.Search(
-		ldap.NewSearchRequest(
-			"dc=example,dc=org",
-			ldap.ScopeWholeSubtree,
-			ldap.NeverDerefAliases,
-			0, 0, false,
-			policies.NamedFilters[filter],
-			policies.NamedFiltersAttributes[filter],
-			nil,
-		),
-	)
-	if err != nil {
-		return err
-	}
+	policy, ok := policies.Policies[filter]
+	if ok {
+		sr, err := conn.Search(
+			ldap.NewSearchRequest(
+				"dc=example,dc=org",
+				ldap.ScopeWholeSubtree,
+				ldap.NeverDerefAliases,
+				0, 0, false,
+				policy.GetFilter(),
+				policy.GetAttributes(),
+				nil,
+			),
+		)
 
-	headers := policies.NamedFiltersAttributes[filter]
-	data := [][]string{}
-	for _, entry := range sr.Entries {
-		dataline := []string{
-			entry.DN,
+		if err != nil {
+			return err
 		}
-		for _, attr := range policies.NamedFiltersAttributes[filter][1:] {
-			dataline = append(dataline, entry.GetAttributeValue(attr))
+
+		headers := policy.GetAttributes()
+		data := [][]string{}
+		for _, entry := range sr.Entries {
+			dataline := make([]string, len(policy.Attributes))
+			for i, attr := range policy.GetAttributes() {
+				dataline[i] = entry.GetAttributeValue(attr)
+			}
+			data = append(data, dataline)
 		}
-		data = append(data, dataline)
+		printer.PrintData(o.Out, headers, data)
 	}
-	printer.PrintData(o.Out, headers, data)
 
 	err = o.SaveSession()
 	if err != nil {
