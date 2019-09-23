@@ -4,8 +4,12 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/adrienaury/owl/pkg/helpers/defaults"
 	"gopkg.in/yaml.v3"
 )
+
+// Version todo
+const Version string = "v1.beta1"
 
 // Policies todo
 type Policies struct {
@@ -41,7 +45,7 @@ func Get(file string) (*Policies, error) {
 		return nil, fmt.Errorf("invalid policy file: %s", err)
 	}
 
-	if p.Version != "v1.beta1" {
+	if p.Version != Version {
 		return p, fmt.Errorf("invalid policy file version: %s", p.Version)
 	}
 
@@ -60,4 +64,36 @@ func (p *Policy) GetAttributes() []string {
 // GetFilter todo
 func (p *Policy) GetFilter() string {
 	return string(p.Filter)
+}
+
+func init() {
+	var err error
+	if !defaults.Exists(defaults.Policies) {
+		defaultFile :=
+			`version: v1.beta1
+policies:
+  all:
+    filter: "(objectClass=*)"
+    attributes:
+      - name: dn
+      - name: objectClass
+  users:
+    filter: "(userPassword=*)"
+    attributes:
+      - name: cn
+        rules:
+          - Capitalize
+      - name: description
+      - name: userPassword
+        rules:
+          - SchemeSSHA`
+		err = ioutil.WriteFile(defaults.Policies, []byte(defaultFile), 0644)
+	} else {
+		_, err = Get(defaults.Policies)
+	}
+
+	if err != nil {
+		// TODO
+		fmt.Println(err)
+	}
 }
