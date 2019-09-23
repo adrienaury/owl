@@ -103,7 +103,11 @@ func (o *Options) Run(args []string) error {
 		for _, entry := range sr.Entries {
 			dataline := make([]string, len(policy.Attributes))
 			for i, attr := range policy.GetAttributes() {
-				dataline[i] = entry.GetAttributeValue(attr)
+				if attr == "dn" {
+					dataline[i] = entry.DN
+				} else {
+					dataline[i] = entry.GetAttributeValue(attr)
+				}
 			}
 			data = append(data, dataline)
 		}
