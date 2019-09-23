@@ -3,7 +3,6 @@ package policies
 import (
 	"fmt"
 	"io/ioutil"
-	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -22,19 +21,11 @@ type Policy struct {
 
 // Attribute of policy
 type Attribute struct {
-	Rules []Rule `yaml:"rules,omitempty"`
+	Rules []string `yaml:"rules,omitempty"`
 }
 
 // Filter of policy
 type Filter string
-
-// Rule to apply to an attribute
-type Rule string
-
-var rules = map[Rule]func(string) string{
-	"Capitalize": func(s string) string { return strings.Title(s) },
-	"HashSha256": func(s string) string { return s },
-}
 
 // Get policies from file
 func Get(file string) (*Policies, error) {
