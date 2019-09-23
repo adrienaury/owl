@@ -12,6 +12,7 @@ import (
 	"github.com/adrienaury/owl/pkg/helpers/paths"
 	"github.com/adrienaury/owl/pkg/helpers/policies"
 	"github.com/adrienaury/owl/pkg/helpers/printer"
+	"github.com/adrienaury/owl/pkg/helpers/rule"
 	"github.com/adrienaury/owl/pkg/helpers/templates"
 	"gopkg.in/ldap.v3"
 
@@ -107,6 +108,12 @@ func (o *Options) Run(args []string) error {
 					dataline[i] = entry.DN
 				} else {
 					dataline[i] = entry.GetAttributeValue(attr)
+				}
+				for _, rulename := range policy.Attributes[i].Rules {
+					if ok, err := rule.Validate(rulename, dataline[i]); !ok && err == nil {
+						log, _ := rule.Apply(rulename, dataline[i])
+						fmt.Println("Value", dataline[i], "doesn't respect rule", rulename, "- it should be equal to", log)
+					}
 				}
 			}
 			data = append(data, dataline)
