@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	yaml "gopkg.in/yaml.v2"
+	yaml "gopkg.in/yaml.v3"
 )
 
 // Session store context in between commands
@@ -26,7 +26,7 @@ func (s *Session) Restore(file string) (*Session, error) {
 		return s, fmt.Errorf("invalid session file: %s", err)
 	}
 
-	err = yaml.UnmarshalStrict(dat, s)
+	err = yaml.Unmarshal(dat, s)
 	if err != nil {
 		return s, fmt.Errorf("invalid session file: %s", err)
 	}

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // Policies todo
@@ -15,12 +15,13 @@ type Policies struct {
 
 // A Policy configure how data is queried in LDAP
 type Policy struct {
-	Attributes map[string]Attribute `yaml:"attributes,omitempty"`
-	Filter     Filter               `yaml:"filter"`
+	Attributes []Attribute `yaml:"attributes"`
+	Filter     Filter      `yaml:"filter"`
 }
 
 // Attribute of policy
 type Attribute struct {
+	Name  string   `yaml:"name"`
 	Rules []string `yaml:"rules,omitempty"`
 }
 
@@ -35,7 +36,7 @@ func Get(file string) (*Policies, error) {
 	}
 
 	p := &Policies{}
-	err = yaml.UnmarshalStrict(dat, p)
+	err = yaml.Unmarshal(dat, p)
 	if err != nil {
 		return nil, fmt.Errorf("invalid policy file: %s", err)
 	}
@@ -50,10 +51,8 @@ func Get(file string) (*Policies, error) {
 // GetAttributes todo
 func (p *Policy) GetAttributes() []string {
 	keys := make([]string, len(p.Attributes))
-	i := 0
-	for k := range p.Attributes {
-		keys[i] = k
-		i++
+	for i, k := range p.Attributes {
+		keys[i] = k.Name
 	}
 	return keys
 }
