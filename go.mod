@@ -8,6 +8,7 @@ require (
 	github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0
 	github.com/docker/docker-credential-helpers v0.6.3
 	github.com/google/go-cmp v0.3.0 // indirect
+	github.com/jsimonetti/pwscheme v0.0.0-20160922125227-76804708ecad
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/olekukonko/tablewriter v0.0.1
