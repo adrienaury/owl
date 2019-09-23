@@ -1,4 +1,4 @@
-package paths
+package defaults
 
 import (
 	"fmt"
@@ -10,8 +10,9 @@ import (
 
 // Application standard paths
 var (
-	Home    string
-	Session string
+	Home     string
+	Session  string
+	Policies string
 )
 
 func init() {
@@ -29,4 +30,13 @@ func init() {
 
 	Home = path.Join(home, ".owl")
 	Session = path.Join(Home, "session.yaml")
+	Policies = path.Join(Home, "policies.yaml")
+}
+
+// Exists todo
+func Exists(p string) bool {
+	if _, err := os.Stat(string(p)); os.IsNotExist(err) {
+		return false
+	}
+	return true
 }

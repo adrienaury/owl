@@ -7,9 +7,9 @@ import (
 
 	"github.com/adrienaury/owl/pkg/helpers/cmdutil"
 	"github.com/adrienaury/owl/pkg/helpers/credentials"
+	"github.com/adrienaury/owl/pkg/helpers/defaults"
 	"github.com/adrienaury/owl/pkg/helpers/errutil"
 	"github.com/adrienaury/owl/pkg/helpers/options"
-	"github.com/adrienaury/owl/pkg/helpers/paths"
 	"github.com/adrienaury/owl/pkg/helpers/policies"
 	"github.com/adrienaury/owl/pkg/helpers/printer"
 	"github.com/adrienaury/owl/pkg/helpers/rule"
@@ -61,7 +61,7 @@ func (o *Options) Run(args []string) error {
 
 	filter := args[0]
 
-	policies, err := policies.Get(paths.Home + "/policies.yaml")
+	policies, err := policies.Get(defaults.Policies)
 	if err != nil {
 		return err
 	}

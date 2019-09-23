@@ -1,8 +1,8 @@
 package get
 
 import (
+	"github.com/adrienaury/owl/pkg/helpers/defaults"
 	"github.com/adrienaury/owl/pkg/helpers/options"
-	"github.com/adrienaury/owl/pkg/helpers/paths"
 	"github.com/adrienaury/owl/pkg/helpers/session"
 	"github.com/spf13/cobra"
 )
@@ -25,7 +25,7 @@ func NewOptions(streams options.IOStreams) *Options {
 
 // LoadSession get current session from disk (if it exists)
 func (o *Options) LoadSession(cmd *cobra.Command, args []string) error {
-	session, err := session.NewSession().Restore(paths.Session)
+	session, err := session.NewSession().Restore(defaults.Session)
 	if err != nil {
 		return err
 	}
@@ -37,5 +37,5 @@ func (o *Options) LoadSession(cmd *cobra.Command, args []string) error {
 
 // SaveSession all the information present in this helper to the session file.
 func (o *Options) SaveSession() error {
-	return o.Session.Dump(paths.Session)
+	return o.Session.Dump(defaults.Session)
 }
