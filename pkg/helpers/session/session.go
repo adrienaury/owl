@@ -12,6 +12,7 @@ type Session struct {
 	Version  string `yaml:"version"`
 	Server   string `yaml:"server"`
 	Username string `yaml:"username"`
+	BaseDN   string `yaml:"basedn"`
 }
 
 // NewSession creates a new session

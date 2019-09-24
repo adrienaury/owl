@@ -85,7 +85,7 @@ func (o *Options) Run(args []string) error {
 	if ok {
 		sr, err := conn.Search(
 			ldap.NewSearchRequest(
-				"dc=example,dc=org",
+				o.Session.BaseDN,
 				ldap.ScopeWholeSubtree,
 				ldap.NeverDerefAliases,
 				0, 0, false,

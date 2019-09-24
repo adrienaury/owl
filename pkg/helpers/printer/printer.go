@@ -15,6 +15,7 @@ func PrintData(out io.Writer, headers []string, data [][]string) {
 	//table.SetColumnSeparator("")
 	//table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 	//table.SetHeaderLine(false)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
 	table.AppendBulk(data)
 	table.Render()
 }

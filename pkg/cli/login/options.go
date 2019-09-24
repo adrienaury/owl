@@ -17,14 +17,12 @@ const defaultURL = "ldap://localhost:389"
 // Notice that some methods mutate this object so it should not be reused. The Config
 // provided as a pointer will also mutate (handle new auth tokens, etc).
 type Options struct {
-	Server string
+	Session *session.Session
 
-	// flags and printing helpers
+	Server   string
 	Username string
 	Password string
-
-	// infra
-	*session.Session
+	BaseDN   string
 
 	CommandName string
 

@@ -74,8 +74,11 @@ func (o *Options) Run() error {
 		return err
 	}
 
+	o.GatherInfo()
+
 	o.Session.Server = normalizedURL
 	o.Session.Username = o.Username
+	o.Session.BaseDN = o.BaseDN
 
 	err = o.SaveSession()
 	if err != nil {
