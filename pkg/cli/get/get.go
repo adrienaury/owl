@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/adrienaury/owl/pkg/helpers/cmdutil"
 	"github.com/adrienaury/owl/pkg/helpers/credentials"
@@ -107,7 +108,7 @@ func (o *Options) Run(args []string) error {
 				if attr == "dn" {
 					dataline[i] = entry.DN
 				} else {
-					dataline[i] = entry.GetAttributeValue(attr)
+					dataline[i] = strings.Join(entry.GetAttributeValues(attr), ",")
 				}
 				for _, rulename := range policy.Attributes[i].Rules {
 					if ok, err := rule.Validate(rulename, dataline[i]); !ok && err == nil {
