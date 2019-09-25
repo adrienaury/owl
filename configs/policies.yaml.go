@@ -1,4 +1,9 @@
-version: v1.beta1
+package configs
+
+// Code generated DO NOT EDIT.
+
+// Policies auto-generated from asset file
+const Policies string = `version: v1.beta1
 policies:
   all:
     filter: "(objectClass=*)"
@@ -9,14 +14,8 @@ policies:
     filter: "(objectClass=inetOrgPerson)"
     attributes:
       - name: cn
-        rules:
-          - Capitalize
       - name: sn
-        rules:
-          - Capitalize
       - name: userPassword
-        rules:
-          - SchemeSSHA
   inetOrgPerson:
     filter: "(objectClass=inetOrgPerson)"
     attributes:
@@ -161,7 +160,7 @@ policies:
 #     - name: userPassword
 #     - name: loginShell
 #     - name: gecos
-#     - name: description	
+#     - name: description
   simpleSecurityObject:
     filter: "(objectClass=simpleSecurityObject)"
     attributes:
@@ -308,3 +307,4 @@ policies:
 # dmd
 # domain
 # ...
+`

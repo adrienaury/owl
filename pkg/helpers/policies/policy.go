@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
+	"github.com/adrienaury/owl/configs"
 	"github.com/adrienaury/owl/pkg/helpers/defaults"
 	"gopkg.in/yaml.v3"
 )
@@ -69,25 +70,7 @@ func (p *Policy) GetFilter() string {
 func init() {
 	var err error
 	if !defaults.Exists(defaults.Policies) {
-		defaultFile :=
-			`version: v1.beta1
-policies:
-  all:
-    filter: "(objectClass=*)"
-    attributes:
-      - name: dn
-      - name: objectClass
-  users:
-    filter: "(userPassword=*)"
-    attributes:
-      - name: cn
-        rules:
-          - Capitalize
-      - name: description
-      - name: userPassword
-        rules:
-          - SchemeSSHA`
-		err = ioutil.WriteFile(defaults.Policies, []byte(defaultFile), 0644)
+		err = ioutil.WriteFile(defaults.Policies, []byte(configs.Policies), 0644)
 	} else {
 		_, err = Get(defaults.Policies)
 	}
