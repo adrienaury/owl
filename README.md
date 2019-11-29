@@ -12,7 +12,7 @@ Property | Description
 --       | --
 id       | Unique realm identifier
 url      | Location of the realm
-admin    | Name of the administrator (used as login account to the realm backend)
+username | Used as login account to the realm backend
 
 ### Units
 
@@ -59,7 +59,7 @@ How ?
 
 #### Examples
 
-```bash
+```text
 $ owl realm create dev ldap://dev.my-company.com/dc=example,dc=com
 Username : admin
 Password :
