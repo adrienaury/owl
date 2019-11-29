@@ -4,39 +4,39 @@ Owl is a set of tools to manage realms of units, users and groups.
 
 Each object has a unique identifier and a set of prefefined properties that can be multivalued.
 
-* Realms
+**Realms**
 
-    Property | Description
-    -        | -
-    id       | Unique realm identifier
-    url      | Location of the realm
-    admin    | Name of the administrator (used as login account to the realm backend)
+Property | Description
+--       | --
+id       | Unique realm identifier
+url      | Location of the realm
+admin    | Name of the administrator (used as login account to the realm backend)
 
-* Units
+**Units**
 
-    Property | Description
-    -        | -
-    id       | Unique unit identifier
-    name     | Name of the unit
+Property | Description
+--       | --
+id       | Unique unit identifier
+name     | Name of the unit
 
-* Users
+**Users**
 
-    Property    | Description
-    -           | -
-    id          | Unique user identifier
-    first-name  | First names [multivalued property]
-    middle-name | Middle names [multivalued property]
-    last-name   | Last names [multivalued property]
-    email       | Email owned by the user [multivalued property]
-    group       | Ids of groups the user is member of [multivalued property]
+Property    | Description
+--       | --
+id          | Unique user identifier
+first-name  | First names [multivalued property]
+middle-name | Middle names [multivalued property]
+last-name   | Last names [multivalued property]
+email       | Email owned by the user [multivalued property]
+group       | Ids of groups the user is member of [multivalued property]
 
-* Groups
+**Groups**
 
-    Property | Description
-    -        | -
-    id       | Unique group identifier
-    name     | Name of the group
-    member   | Ids of users in the group [multivalued property]
+Property | Description
+--       | --
+id       | Unique group identifier
+name     | Name of the group
+member   | Ids of users in the group [multivalued property]
 
 ## Owl CLI
 
