@@ -108,6 +108,49 @@ func (b BackendLDAP) ListUnits() (unit.List, error) {
 	return unit.NewList(units), nil
 }
 
+// GetUnit ...
+func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
+	if b.creds == nil {
+		return nil, fmt.Errorf("no credentials")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return nil, err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return nil, fmt.Errorf("invalid credentials")
+	}
+
+	sr, err := conn.Search(
+		ldap.NewSearchRequest(
+			b.baseDN,
+			ldap.ScopeWholeSubtree,
+			ldap.NeverDerefAliases,
+			0, 0, false,
+			"(ou="+id+")",
+			[]string{"ou"},
+			nil,
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(sr.Entries) != 1 {
+		return nil, fmt.Errorf("assertion failed, should have exactly 1 unit named %v but got %v", id, len(sr.Entries))
+	}
+
+	entry := sr.Entries[0]
+
+	return unit.NewUnit(
+		entry.GetAttributeValues("ou")[0],
+	), nil
+}
+
 // CreateUnit ...
 func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 	if b.creds == nil {

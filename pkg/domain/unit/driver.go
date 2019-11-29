@@ -19,6 +19,15 @@ func (d Driver) List() (List, error) {
 	return list, nil
 }
 
+// Get ...
+func (d Driver) Get(id string) (Unit, error) {
+	unit, err := d.backend.GetUnit(id)
+	if err != nil {
+		return nil, err
+	}
+	return unit, nil
+}
+
 // Create ...
 func (d Driver) Create(u Unit) error {
 	err := d.backend.CreateUnit(u)

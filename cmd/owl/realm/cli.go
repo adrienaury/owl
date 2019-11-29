@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/adrienaury/owl/cmd/owl/session"
 	"github.com/adrienaury/owl/pkg/domain/credentials"
 	"github.com/adrienaury/owl/pkg/domain/realm"
 	"github.com/spf13/cobra"
 )
 
 var (
+	globalSession     *session.Session
 	realmDriver       realm.Driver
 	credentialsDriver credentials.Driver
 )
@@ -18,6 +20,11 @@ var (
 func SetDrivers(r realm.Driver, c credentials.Driver) {
 	realmDriver = r
 	credentialsDriver = c
+}
+
+// SetSession ...
+func SetSession(s *session.Session) {
+	globalSession = s
 }
 
 // NewCommand implements the cli realm command

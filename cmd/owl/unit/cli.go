@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/adrienaury/owl/cmd/owl/session"
 	"github.com/adrienaury/owl/pkg/domain/credentials"
 	"github.com/adrienaury/owl/pkg/domain/realm"
 	"github.com/adrienaury/owl/pkg/domain/unit"
@@ -11,6 +12,7 @@ import (
 )
 
 var (
+	globalSession     *session.Session
 	unitDriver        unit.Driver
 	realmDriver       realm.Driver
 	credentialsDriver credentials.Driver
@@ -21,6 +23,11 @@ func SetDrivers(u unit.Driver, r realm.Driver, c credentials.Driver) {
 	unitDriver = u
 	realmDriver = r
 	credentialsDriver = c
+}
+
+// SetSession ...
+func SetSession(s *session.Session) {
+	globalSession = s
 }
 
 // NewCommand implements the cli unit command
@@ -35,6 +42,7 @@ func NewCommand(fullName string, err *os.File, out *os.File, in *os.File) *cobra
 	cmd.AddCommand(newListCommand(fullName, err, out, in))
 	cmd.AddCommand(newCreateCommand(fullName, err, out, in))
 	cmd.AddCommand(newDeleteCommand(fullName, err, out, in))
+	cmd.AddCommand(newUseCommand(fullName, err, out, in))
 	cmd.SetOut(out)
 	cmd.SetErr(err)
 	cmd.SetIn(in)
