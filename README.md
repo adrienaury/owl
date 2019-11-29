@@ -60,10 +60,8 @@ How ?
 #### Examples
 
 ```text
-$ owl realm create dev ldap://dev.my-company.com/dc=example,dc=com
-Username : admin
-Password :
-Created realm 'dev'.
+$ owl realm set dev ldap://dev.my-company.com/dc=example,dc=com
+Set realm 'dev' to 'ldap://dev.my-company.com/dc=example,dc=com'.
 
 $ owl realm list -o table
 Identifier  Username  URL
@@ -71,6 +69,8 @@ dev         admin     ldap://dev.my-company.com/dc=example,dc=com
 prod        admin     ldap://prod.my-company.com/dc=example,dc=com
 
 $ owl realm login dev
+Username : admin
+Password :
 Connected to realm 'dev' as user 'admin'.
 
 $ owl unit list -o table

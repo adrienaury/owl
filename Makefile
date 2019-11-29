@@ -56,12 +56,12 @@ ifeq (, $(shell which golangci-lint))
 endif
 	golangci-lint run -E misspell -E gocyclo -E gosec -E unparam -E goimports -E nakedret -E gocritic
 
-.PHONY: generate
-generate: ## Update generated code
-	GO111MODULE=on go generate configs/generate.go
+#.PHONY: generate
+#generate: ## Update generated code
+#	GO111MODULE=on go generate configs/generate.go
 
 .PHONY: build-%
-build-%: mkdir generate
+build-%: mkdir #generate
 	GO111MODULE=on go build ${GOARGS} -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/$* ./cmd/$*
 
 .PHONY: build

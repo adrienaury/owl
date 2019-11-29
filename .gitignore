@@ -2,6 +2,8 @@
 /.target/
 *.exe
 
+realms.yaml
+
 # IDE integration
 /.vscode/*
 !/.vscode/launch.json
