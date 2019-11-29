@@ -18,3 +18,12 @@ func (d Driver) List() (List, error) {
 	}
 	return list, nil
 }
+
+// Create ...
+func (d Driver) Create(u Unit) error {
+	err := d.backend.CreateUnit(u)
+	if err != nil {
+		return err
+	}
+	return nil
+}

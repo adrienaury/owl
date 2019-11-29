@@ -101,6 +101,37 @@ func (b BackendLDAP) ListUnits() (unit.List, error) {
 	return unit.NewList(units), nil
 }
 
+// CreateUnit ...
+func (b BackendLDAP) CreateUnit(u unit.Unit) error {
+	if b.creds == nil {
+		return fmt.Errorf("no credentials")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return fmt.Errorf("invalid credentials")
+	}
+
+	dn := "ou=" + u.ID() + "," + b.baseDN
+
+	addRequest := ldap.NewAddRequest(dn, []ldap.Control{})
+	addRequest.Attribute("objectClass", []string{"organizationalUnit"})
+	addRequest.Attribute("ou", []string{u.ID()})
+
+	err = conn.Add(addRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // dialToServer takes the Server URL and dials to make sure the server is reachable.
 func (b BackendLDAP) dialToServer(c credentials.Credentials) (*ldap.Conn, error) {
 	l, err := ldap.DialURL(c.URL())
