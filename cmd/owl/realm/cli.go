@@ -30,6 +30,7 @@ func NewCommand(fullName string, err *os.File, out *os.File, in *os.File) *cobra
 		Aliases: []string{"rlm"},
 	}
 	cmd.AddCommand(newSetCommand(fullName, err, out, in))
+	cmd.AddCommand(newListCommand(fullName, err, out, in))
 	cmd.SetOut(out)
 	cmd.SetErr(err)
 	cmd.SetIn(in)

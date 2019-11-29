@@ -28,7 +28,7 @@ func (d Driver) Get(id string) (Realm, error) {
 }
 
 // List ...
-func (d Driver) List() ([]Realm, error) {
+func (d Driver) List() (List, error) {
 	list, err := d.storage.ListRealms()
 	if err != nil {
 		return nil, err

@@ -79,21 +79,21 @@ func (s YAMLStorage) GetRealm(id string) (realm.Realm, error) {
 }
 
 // ListRealms contained in the local YAML file
-func (s YAMLStorage) ListRealms() ([]realm.Realm, error) {
+func (s YAMLStorage) ListRealms() (realm.List, error) {
 	structure, err := readFile()
 	if err != nil {
 		return nil, err
 	}
 
 	list := structure.Realms
-	result := make([]realm.Realm, len(list))
+	result := make([]realm.Realm, 0, len(list))
 
 	for _, ym := range list {
 		m := realm.NewRealm(ym.ID, ym.URL, ym.Username)
 		result = append(result, m)
 	}
 
-	return result, nil
+	return realm.NewList(result), nil
 }
 
 func readFile() (*YAMLStructure, error) {

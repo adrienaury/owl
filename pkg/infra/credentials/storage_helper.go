@@ -50,8 +50,17 @@ func (s HelperStorage) GetCredentials(url string, user string) (credentials.Cred
 	}
 
 	storedCreds, err := client.Get(s.nativeStore, normalizedURL)
+	if isErrCredentialsNotFound(err) {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, err
 	}
 	return credentials.NewCredentials(storedCreds.ServerURL, storedCreds.Username, storedCreds.Secret), nil
+}
+
+// IsErrCredentialsNotFound returns true if the error
+// was caused by not having a set of credentials in a store.
+func isErrCredentialsNotFound(err error) bool {
+	return backend.IsErrCredentialsNotFound(err)
 }

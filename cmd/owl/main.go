@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/adrienaury/owl/cmd/owl-cli/realm"
+	"github.com/adrienaury/owl/cmd/owl/realm"
 	"github.com/spf13/cobra"
 )
 
