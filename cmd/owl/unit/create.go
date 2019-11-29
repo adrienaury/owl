@@ -41,6 +41,11 @@ func newCreateCommand(fullName string, err *os.File, out *os.File, in *os.File) 
 				fmt.Fprintln(err, e.Error())
 				os.Exit(1)
 			}
+
+			flagRealm := cmd.Flag("realm")
+
+			fmt.Fprintf(out, "Created unit '%v' in realm '%v'.", u.ID, flagRealm.Value)
+			fmt.Fprintln(out)
 		},
 	}
 	cmd.SetOut(out)
