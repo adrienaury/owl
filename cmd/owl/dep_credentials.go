@@ -5,10 +5,10 @@ import (
 	infra "github.com/adrienaury/owl/pkg/infra/credentials"
 )
 
-func credentialsStorage() domain.Storage {
+func newCredentialsStorage() domain.Storage {
 	return infra.NewHelperStorage()
 }
 
-func credentialsDriver() domain.Driver {
-	return domain.NewDriver(credentialsStorage(), backend())
+func newCredentialsDriver(backend domain.Backend) domain.Driver {
+	return domain.NewDriver(newCredentialsStorage(), backend)
 }

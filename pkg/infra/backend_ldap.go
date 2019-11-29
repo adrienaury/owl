@@ -4,19 +4,32 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/adrienaury/owl/pkg/domain/credentials"
 	"net"
+	"net/url"
+	"strings"
+
+	"github.com/adrienaury/owl/pkg/domain/credentials"
+	"github.com/adrienaury/owl/pkg/domain/unit"
 
 	"gopkg.in/ldap.v3"
 )
 
 // BackendLDAP ...
 type BackendLDAP struct {
+	creds  credentials.Credentials
+	baseDN string
 }
 
 // NewBackendLDAP ...
 func NewBackendLDAP() BackendLDAP {
 	return BackendLDAP{}
+}
+
+// SetCredentials ...
+func (b *BackendLDAP) SetCredentials(c credentials.Credentials) {
+	b.creds = c
+	u, _ := url.Parse(c.URL())
+	b.baseDN = strings.Trim(u.EscapedPath(), "/")
 }
 
 // TestCredentials ...
@@ -44,6 +57,48 @@ func (b BackendLDAP) TestCredentials(c credentials.Credentials) (bool, error) {
 		defer conn.Close()
 		return b.authenticateToServer(c, conn), nil
 	}
+}
+
+// ListUnits ...
+func (b BackendLDAP) ListUnits() (unit.List, error) {
+	if b.creds == nil {
+		return nil, fmt.Errorf("no credentials")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return nil, err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return nil, fmt.Errorf("invalid credentials")
+	}
+
+	sr, err := conn.Search(
+		ldap.NewSearchRequest(
+			b.baseDN,
+			ldap.ScopeWholeSubtree,
+			ldap.NeverDerefAliases,
+			0, 0, false,
+			"(objectClass=organizationalUnit)",
+			[]string{"ou"},
+			nil,
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	units := make([]unit.Unit, len(sr.Entries))
+	for idx, entry := range sr.Entries {
+		units[idx] = unit.NewUnit(
+			entry.GetAttributeValues("ou")[0],
+		)
+	}
+
+	return unit.NewList(units), nil
 }
 
 // dialToServer takes the Server URL and dials to make sure the server is reachable.

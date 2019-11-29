@@ -19,12 +19,11 @@ username | Used as login account to the realm backend
 Property | Description
 --       | --
 id       | Unique unit identifier
-name     | Name of the unit
 
 ### Users
 
 Property    | Description
---       | --
+--          | --
 id          | Unique user identifier
 first-name  | First names [multivalued property]
 middle-name | Middle names [multivalued property]
@@ -69,7 +68,6 @@ dev         admin     ldap://dev.my-company.com/dc=example,dc=com
 prod        admin     ldap://prod.my-company.com/dc=example,dc=com
 
 $ owl realm login dev
-Username : admin
 Password :
 Connected to realm 'dev' as user 'admin'.
 

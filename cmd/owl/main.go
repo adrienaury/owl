@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/adrienaury/owl/cmd/owl/realm"
+	"github.com/adrienaury/owl/cmd/owl/unit"
 	"github.com/spf13/cobra"
 )
 
@@ -15,6 +16,9 @@ var (
 	commit    string
 	buildDate string
 	builtBy   string
+
+	// global flags
+	flagRealm string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -42,9 +46,28 @@ func main() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
+	// global flags
+	rootCmd.PersistentFlags().StringVar(&flagRealm, "realm", "", "target realm")
+
 	rootCmd.AddCommand(realm.NewCommand("owl", os.Stderr, os.Stdout, os.Stdin))
+	rootCmd.AddCommand(unit.NewCommand("owl", os.Stderr, os.Stdout, os.Stdin))
 }
 
 func initConfig() {
-	realm.SetDrivers(realmDriver(), credentialsDriver())
+	backend := newBackend()
+	credentialsDriver := newCredentialsDriver(backend)
+	realmDriver := newRealmDriver()
+
+	r, _ := realmDriver.Get(flagRealm)
+	if r != nil {
+		c, _ := credentialsDriver.Get(r.URL(), r.Username())
+		if c != nil {
+			backend.SetCredentials(c)
+		}
+	}
+
+	realm.SetDrivers(realmDriver, credentialsDriver)
+
+	unitDriver := newUnitDriver(backend)
+	unit.SetDrivers(unitDriver, realmDriver, credentialsDriver)
 }

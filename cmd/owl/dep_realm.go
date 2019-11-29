@@ -5,10 +5,10 @@ import (
 	infra "github.com/adrienaury/owl/pkg/infra/realm"
 )
 
-func realmStorage() domain.Storage {
+func newRealmStorage() domain.Storage {
 	return infra.NewYAMLStorage()
 }
 
-func realmDriver() domain.Driver {
-	return domain.NewDriver(realmStorage())
+func newRealmDriver() domain.Driver {
+	return domain.NewDriver(newRealmStorage())
 }
