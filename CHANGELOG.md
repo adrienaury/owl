@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for 0.1.0
+### Planned for 0.1.0 "MVP"
 
-- Implement login command (ldap protocol)
-- Implement get command
+- Ability to create and list realms, URL and credentials
+- Ability to create, delete and list units with JSON input and output
+- Ability to create, delete and list users with JSON input and output
+- Ability to create, delete and list groups with JSON input and output
+- LDAP backend connector
