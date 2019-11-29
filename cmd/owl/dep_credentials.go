@@ -10,5 +10,5 @@ func credentialsStorage() domain.Storage {
 }
 
 func credentialsDriver() domain.Driver {
-	return domain.NewDriver(credentialsStorage(), nil)
+	return domain.NewDriver(credentialsStorage(), backend())
 }

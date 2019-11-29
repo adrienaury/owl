@@ -8,5 +8,5 @@ type Storage interface {
 
 // Backend ...
 type Backend interface {
-	TestCredentials(c Credentials) error
+	TestCredentials(c Credentials) (bool, error)
 }

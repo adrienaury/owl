@@ -29,9 +29,10 @@ func (d Driver) Get(url string, username string) (Credentials, error) {
 }
 
 // Test ...
-func (d Driver) Test(creds Credentials) error {
-	if err := d.backend.TestCredentials(creds); err != nil {
-		return err
+func (d Driver) Test(creds Credentials) (bool, error) {
+	ok, err := d.backend.TestCredentials(creds)
+	if err != nil {
+		return false, err
 	}
-	return nil
+	return ok, nil
 }
