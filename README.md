@@ -2,9 +2,11 @@
 
 Owl is a set of tools to manage realms of units, users and groups.
 
+## Concepts
+
 Each object has a unique identifier and a set of prefefined properties that can be multivalued.
 
-**Realms**
+### Realms
 
 Property | Description
 --       | --
@@ -12,14 +14,14 @@ id       | Unique realm identifier
 url      | Location of the realm
 admin    | Name of the administrator (used as login account to the realm backend)
 
-**Units**
+### Units
 
 Property | Description
 --       | --
 id       | Unique unit identifier
 name     | Name of the unit
 
-**Users**
+### Users
 
 Property    | Description
 --       | --
@@ -30,7 +32,7 @@ last-name   | Last names [multivalued property]
 email       | Email owned by the user [multivalued property]
 group       | Ids of groups the user is member of [multivalued property]
 
-**Groups**
+### Groups
 
 Property | Description
 --       | --
@@ -38,7 +40,9 @@ id       | Unique group identifier
 name     | Name of the group
 member   | Ids of users in the group [multivalued property]
 
-## Owl CLI
+## Tools
+
+### Owl CLI
 
 Owl CLI respect the UNIX philosophy :
 
@@ -53,7 +57,7 @@ How ?
 * write outputs as json on the standard output by default
 * write logs on the standard error by default
 
-### Examples
+#### Examples
 
 ```bash
 $ owl realm create dev ldap://dev.my-company.com/dc=example,dc=com
@@ -73,28 +77,31 @@ $ owl unit list -o table
 The realm contains no unit.
 
 $ owl unit apply <<< '{"id": "my-unit"}'
-Created unit 'my-unit'.
+Created unit 'my-unit' in realm 'dev'.
 
 $ owl unit list
 {"units": [{"id": "my-unit"}]}
 
+$ owl unit use my-unit
+Using unit 'my-unit' for next commands.
+
 $ owl user create <<< '{"id": "batman", "first-name": ["Bruce"], "last-name": ["Wayne"]}'
-Created user 'batman'.
+Created user 'batman' in unit 'my-unit' of realm 'dev'.
 
 $ owl user apply <<< '{"id": "batman", "email": "bruce.wayne@gotham.dc"}'
-Modified user 'batman'.
+Modified user 'batman' in unit 'my-unit' of realm 'dev'.
 
 $ owl user apply joker first-name=Arthur last-name=Flake email=arthur.flake@gotham.dc
-Created user 'joker'.
+Created user 'joker' in unit 'my-unit' of realm 'dev'.
 
 $ owl user add first-name="Jack"
-Modifier user 'joker'.
+Modifier user 'joker' in unit 'my-unit' of realm 'dev'.
 
 $ owl group create bad-guys member=joker member=batman
-Created group 'bad-guys'.
+Created group 'bad-guys' in unit 'my-unit' of realm 'dev'.
 
 $ owl group remove member=batman
-Modified group 'bad-guys'.
+Modified group 'bad-guys' in unit 'my-unit' of realm 'dev'.
 
 $ owl user list -o table
 Identifier  First-Name    Middle-Name  Last-Name  Email                   Group
@@ -135,11 +142,11 @@ $ owl user list | jq
     ]
 }
 
-$ owl user list --realm=dev | owl import --realm=prod
-Imported 2 users.
+$ owl user list | owl import --realm=prod --unit=organization
+Imported 2 users in unit 'organization' of realm 'prod'.
 ```
 
-### Installation
+#### Installation
 
 Download the latest version for your OS from the [release page](https://github.com/adrienaury/owl/releases).
 
