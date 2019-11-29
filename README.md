@@ -10,34 +10,33 @@ Each object has a unique identifier and a set of prefefined properties that can 
 
 Property | Description
 --       | --
-id       | Unique realm identifier
-url      | Location of the realm
-username | Used as login account to the realm backend
+ID       | Unique realm identifier
+URL      | Location of the realm
+Username | Used as login account to the realm backend
 
 ### Units
 
 Property | Description
 --       | --
-id       | Unique unit identifier
+ID       | Unique unit identifier
 
 ### Users
 
 Property    | Description
 --          | --
-id          | Unique user identifier
-first-name  | First names [multivalued property]
-middle-name | Middle names [multivalued property]
-last-name   | Last names [multivalued property]
-email       | Email owned by the user [multivalued property]
-group       | Ids of groups the user is member of [multivalued property]
+ID          | Unique user identifier
+FirstNames  | First names [multivalued property]
+LastNames   | Last names [multivalued property]
+Emails      | Email owned by the user [multivalued property]
+Groups      | Ids of groups the user is member of [multivalued property]
 
 ### Groups
 
 Property | Description
 --       | --
-id       | Unique group identifier
-name     | Name of the group
-member   | Ids of users in the group [multivalued property]
+ID       | Unique group identifier
+Name     | Name of the group
+Members  | Ids of users in the group [multivalued property]
 
 ## Tools
 
@@ -74,25 +73,25 @@ Connected to realm 'dev' as user 'admin'.
 $ owl unit list -o table
 The realm contains no unit.
 
-$ owl unit create <<< '{"id": "my-unit"}'
+$ owl unit create <<< '{"ID": "my-unit"}'
 Created unit 'my-unit' in realm 'dev'.
 
 $ owl unit list
-{"units": [{"id": "my-unit"}]}
+{"units": [{"ID": "my-unit"}]}
 
 $ owl unit use my-unit
 Using unit 'my-unit' for next commands.
 
-$ owl user create <<< '{"id": "batman", "first-name": ["Bruce"], "last-name": ["Wayne"]}'
+$ owl user create <<< '{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"]}'
 Created user 'batman' in unit 'my-unit' of realm 'dev'.
 
-$ owl user apply <<< '{"id": "batman", "email": "bruce.wayne@gotham.dc"}'
+$ owl user apply <<< '{"ID": "batman", "Emails": ["bruce.wayne@gotham.dc"]}'
 Modified user 'batman' in unit 'my-unit' of realm 'dev'.
 
-$ owl user apply joker first-name=Arthur last-name=Flake email=arthur.flake@gotham.dc
+$ owl user apply joker FirstNames=Arthur LastNames=Flake Emails=arthur.flake@gotham.dc
 Created user 'joker' in unit 'my-unit' of realm 'dev'.
 
-$ owl user add first-name="Jack"
+$ owl user add joker FirstNames="Jack"
 Modifier user 'joker' in unit 'my-unit' of realm 'dev'.
 
 $ owl group create bad-guys member=joker member=batman
@@ -102,38 +101,38 @@ $ owl group remove member=batman
 Modified group 'bad-guys' in unit 'my-unit' of realm 'dev'.
 
 $ owl user list -o table
-Identifier  First-Name    Middle-Name  Last-Name  Email                   Group
-batman      Bruce                      Wayne      bruce.wayne@gotham.dc
-joker       Arthur, Jack               Flake      arthur.flake@gotham.dc  bad-guys
+Identifier  FirstNames    LastNames  Email                   Group
+batman      Bruce         Wayne      bruce.wayne@gotham.dc
+joker       Arthur, Jack  Flake      arthur.flake@gotham.dc  bad-guys
 
 $ owl user list
-{"users": [{"id": "batman", "first-name": ["Bruce"], "last-name": ["Wayne"], "email": ["bruce.wayne@gotham.dc"]}, {"id": "joker", "first-name": ["Arthur", "Jack"], "last-name": ["Flake"], "email": ["arthur.flake@gotham.dc"]}]}
+{"users": [{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"], "Emails": ["bruce.wayne@gotham.dc"]}, {"ID": "joker", "FirstNames": ["Arthur", "Jack"], "LastNames": ["Flake"], "Emails": ["arthur.flake@gotham.dc"]}]}
 
 $ owl user list | jq
 {
     "users": [
         {
-            "id": "batman",
-            "first-name": [
+            "ID": "batman",
+            "FirstNames": [
                 "Bruce"
             ],
-            "last-name": [
+            "LastNames": [
                 "Wayne"
             ],
-            "email": [
+            "Emails": [
                 "bruce.wayne@gotham.dc"
             ]
         },
         {
-            "id": "joker",
-            "first-name": [
+            "ID": "joker",
+            "FirstNames": [
                 "Arthur",
                 "Jack"
             ],
-            "last-name": [
+            "LastNames": [
                 "Flake"
             ],
-            "email": [
+            "Emails": [
                 "arthur.flake@gotham.dc"
             ]
         }
