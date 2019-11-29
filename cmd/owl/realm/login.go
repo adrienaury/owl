@@ -35,7 +35,7 @@ func newLoginCommand(fullName string, err *os.File, out *os.File, in *os.File) *
 
 			// no existing credentials, ask password to user
 			if creds == nil {
-				creds = credentials.NewCredentials(creds.URL(), creds.Username(), askPassword(err, out, in))
+				creds = credentials.NewCredentials(realm.URL(), realm.Username(), askPassword(err, out, in))
 			}
 
 			// test credentials
