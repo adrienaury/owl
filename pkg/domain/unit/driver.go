@@ -27,3 +27,12 @@ func (d Driver) Create(u Unit) error {
 	}
 	return nil
 }
+
+// Delete ...
+func (d Driver) Delete(id string) error {
+	err := d.backend.DeleteUnit(id)
+	if err != nil {
+		return err
+	}
+	return nil
+}

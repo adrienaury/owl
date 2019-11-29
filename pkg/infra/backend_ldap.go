@@ -132,6 +132,35 @@ func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 	return nil
 }
 
+// DeleteUnit ...
+func (b BackendLDAP) DeleteUnit(id string) error {
+	if b.creds == nil {
+		return fmt.Errorf("no credentials")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return fmt.Errorf("invalid credentials")
+	}
+
+	dn := "ou=" + id + "," + b.baseDN
+
+	delRequest := ldap.NewDelRequest(dn, []ldap.Control{})
+
+	err = conn.Del(delRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // dialToServer takes the Server URL and dials to make sure the server is reachable.
 func (b BackendLDAP) dialToServer(c credentials.Credentials) (*ldap.Conn, error) {
 	l, err := ldap.DialURL(c.URL())
