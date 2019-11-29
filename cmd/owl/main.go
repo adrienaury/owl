@@ -6,6 +6,7 @@ import (
 
 	"github.com/adrienaury/owl/cmd/owl/realm"
 	"github.com/adrienaury/owl/cmd/owl/unit"
+	"github.com/adrienaury/owl/cmd/owl/user"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +20,7 @@ var (
 
 	// global flags
 	flagRealm string
+	flagUnit  string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -48,13 +50,16 @@ func init() {
 
 	// global flags
 	rootCmd.PersistentFlags().StringVar(&flagRealm, "realm", "", "target realm")
+	rootCmd.PersistentFlags().StringVar(&flagUnit, "unit", "", "target unit")
 
 	rootCmd.AddCommand(realm.NewCommand("owl", os.Stderr, os.Stdout, os.Stdin))
 	rootCmd.AddCommand(unit.NewCommand("owl", os.Stderr, os.Stdout, os.Stdin))
+	rootCmd.AddCommand(user.NewCommand("owl", os.Stderr, os.Stdout, os.Stdin))
 }
 
 func initConfig() {
 	backend := newBackend()
+	backend.SetUnit(flagUnit)
 	credentialsDriver := newCredentialsDriver(backend)
 	realmDriver := newRealmDriver()
 
@@ -70,4 +75,7 @@ func initConfig() {
 
 	unitDriver := newUnitDriver(backend)
 	unit.SetDrivers(unitDriver, realmDriver, credentialsDriver)
+
+	userDriver := newUserDriver(backend)
+	user.SetDrivers(userDriver, realmDriver, credentialsDriver)
 }
