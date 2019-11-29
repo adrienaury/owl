@@ -26,6 +26,12 @@ func newLoginCommand(fullName string, err *os.File, out *os.File, in *os.File) *
 				os.Exit(1)
 			}
 
+			if realm == nil {
+				fmt.Fprintf(err, "Unknown realm '%v'.", id)
+				fmt.Fprintln(err)
+				os.Exit(1)
+			}
+
 			// get existing crendentials
 			creds, e := credentialsDriver.Get(realm.URL(), realm.Username())
 			if e != nil {

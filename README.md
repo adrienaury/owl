@@ -74,7 +74,7 @@ Connected to realm 'dev' as user 'admin'.
 $ owl unit list -o table
 The realm contains no unit.
 
-$ owl unit apply <<< '{"id": "my-unit"}'
+$ owl unit create <<< '{"id": "my-unit"}'
 Created unit 'my-unit' in realm 'dev'.
 
 $ owl unit list
