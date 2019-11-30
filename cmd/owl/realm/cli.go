@@ -37,6 +37,7 @@ func InitCommand(parentCmd *cobra.Command) {
 	}
 	parentCmd.AddCommand(cmd)
 	initSetCommand(cmd)
+	initCreateCommand(cmd)
 	initListCommand(cmd)
 	initLoginCommand(cmd)
 }
