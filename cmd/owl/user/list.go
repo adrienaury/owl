@@ -18,6 +18,7 @@ func newListCommand(fullName string, err *os.File, out *os.File, in *os.File) *c
 		Aliases: []string{"ls"},
 		Example: fmt.Sprintf("  %[1]s user list", fullName),
 		Args:    cobra.NoArgs,
+		PreRun:  initCredentialsAndUnit,
 		Run: func(cmd *cobra.Command, args []string) {
 			users, e := userDriver.List()
 			if e != nil {

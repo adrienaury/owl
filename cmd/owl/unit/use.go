@@ -15,6 +15,7 @@ func newUseCommand(fullName string, err *os.File, out *os.File, in *os.File) *co
 		Long:    "",
 		Example: fmt.Sprintf("  %[1]s unit use my-unit", fullName),
 		Args:    cobra.ExactArgs(1),
+		PreRun:  initCredentials,
 		Run: func(cmd *cobra.Command, args []string) {
 			id := args[0]
 
@@ -30,6 +31,7 @@ func newUseCommand(fullName string, err *os.File, out *os.File, in *os.File) *co
 				os.Exit(1)
 			}
 
+			unitDriver.Use(id)
 			globalSession.Unit = unit.ID()
 
 			fmt.Fprintf(out, "Using unit '%v' for next commands.", unit.ID())

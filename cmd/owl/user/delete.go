@@ -16,6 +16,7 @@ func newDeleteCommand(fullName string, err *os.File, out *os.File, in *os.File) 
 		Aliases: []string{"del"},
 		Example: fmt.Sprintf(`  %[1]s user delete joker`, fullName),
 		Args:    cobra.ExactArgs(1),
+		PreRun:  initCredentialsAndUnit,
 		Run: func(cmd *cobra.Command, args []string) {
 			id := args[0]
 

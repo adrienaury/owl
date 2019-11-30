@@ -45,3 +45,8 @@ func (d Driver) Delete(id string) error {
 	}
 	return nil
 }
+
+// Use ...
+func (d Driver) Use(id string) {
+	d.backend.UseUnit(id)
+}

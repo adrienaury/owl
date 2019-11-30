@@ -19,6 +19,7 @@ func newCreateCommand(fullName string, err *os.File, out *os.File, in *os.File) 
 		Aliases: []string{"add"},
 		Example: fmt.Sprintf(`  %[1]s user create <<< '{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"]}'`, fullName),
 		Args:    cobra.NoArgs,
+		PreRun:  initCredentialsAndUnit,
 		Run: func(cmd *cobra.Command, args []string) {
 			u := struct {
 				ID         string

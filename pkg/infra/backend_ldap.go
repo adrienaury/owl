@@ -27,15 +27,15 @@ func NewBackendLDAP() BackendLDAP {
 	return BackendLDAP{}
 }
 
-// SetCredentials ...
-func (b *BackendLDAP) SetCredentials(c credentials.Credentials) {
+// UseCredentials ...
+func (b *BackendLDAP) UseCredentials(c credentials.Credentials) {
 	b.creds = c
 	u, _ := url.Parse(c.URL())
 	b.baseDN = strings.Trim(u.EscapedPath(), "/")
 }
 
-// SetUnit ...
-func (b *BackendLDAP) SetUnit(id string) {
+// UseUnit ...
+func (b *BackendLDAP) UseUnit(id string) {
 	b.unit = id
 }
 

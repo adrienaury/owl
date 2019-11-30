@@ -12,7 +12,6 @@ import (
 	"github.com/adrienaury/owl/cmd/owl/user"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // Provisioned by ldflags
@@ -28,9 +27,8 @@ var (
 	globalSession = session.NewSession(path.Join(home, "session.yaml"))
 
 	// global flags
-	flagCfgFile string
-	flagRealm   string
-	flagUnit    string
+	flagRealm string
+	flagUnit  string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -60,7 +58,6 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	// global flags
-	rootCmd.PersistentFlags().StringVar(&flagCfgFile, "config", "", "config file (default is $HOME/.owl/config.yaml)")
 	rootCmd.PersistentFlags().StringVar(&flagRealm, "realm", "", "target realm")
 	rootCmd.PersistentFlags().StringVar(&flagUnit, "unit", "", "target unit")
 
@@ -76,23 +73,6 @@ func initConfig() {
 		fmt.Println(err.Error())
 	}
 
-	if flagCfgFile != "" {
-		// Use config file from the flag.
-		viper.SetConfigFile(flagCfgFile)
-	} else {
-		// Search config in home directory.
-		viper.AddConfigPath(home)
-		viper.SetConfigName("config")
-	}
-
-	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
-		// TODO: logger
-		//fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
-
 	if strings.TrimSpace(flagUnit) == "" {
 		flagUnit = globalSession.Unit
 	}
@@ -102,27 +82,18 @@ func initConfig() {
 	}
 
 	backend := newBackend()
-	backend.SetUnit(flagUnit)
-	credentialsDriver := newCredentialsDriver(backend)
+	credentialsDriver := newCredentialsDriver(&backend)
 	realmDriver := newRealmDriver()
-
-	r, _ := realmDriver.Get(flagRealm)
-	if r != nil {
-		c, _ := credentialsDriver.Get(r.URL(), r.Username())
-		if c != nil {
-			backend.SetCredentials(c)
-		}
-	}
+	unitDriver := newUnitDriver(&backend)
+	userDriver := newUserDriver(&backend)
 
 	realm.SetDrivers(realmDriver, credentialsDriver)
 	realm.SetSession(globalSession)
 
-	unitDriver := newUnitDriver(backend)
 	unit.SetDrivers(unitDriver, realmDriver, credentialsDriver)
 	unit.SetSession(globalSession)
 
-	userDriver := newUserDriver(backend)
-	user.SetDrivers(userDriver, realmDriver, credentialsDriver)
+	user.SetDrivers(userDriver, unitDriver, realmDriver, credentialsDriver)
 }
 
 func initHome() string {

@@ -75,6 +75,7 @@ func newLoginCommand(fullName string, err *os.File, out *os.File, in *os.File) *
 				os.Exit(1)
 			}
 
+			credentialsDriver.Use(creds)
 			globalSession.Realm = realm.ID()
 
 			fmt.Fprintf(out, "Connected to realm '%v' as user '%v'.", realm.ID(), realm.Username())

@@ -36,3 +36,8 @@ func (d Driver) Test(creds Credentials) (bool, error) {
 	}
 	return ok, nil
 }
+
+// Use ...
+func (d Driver) Use(creds Credentials) {
+	d.backend.UseCredentials(creds)
+}
