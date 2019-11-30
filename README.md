@@ -139,6 +139,12 @@ $ owl user list | jq
     ]
 }
 
+$ owl user ls | jq ".Users | [.[].ID]"
+[
+  "batman",
+  "joker"
+]
+
 $ owl user list | owl import --realm=prod --unit=organization
 Imported 2 users in unit 'organization' of realm 'prod'.
 ```
