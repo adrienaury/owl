@@ -9,34 +9,31 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// newListCommand implements the cli user list command
-func newListCommand(fullName string, err *os.File, out *os.File, in *os.File) *cobra.Command {
+// initListCommand initialize the cli user list command
+func initListCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:     "list",
 		Short:   "List users",
 		Long:    "",
 		Aliases: []string{"ls"},
-		Example: fmt.Sprintf("  %[1]s user list", fullName),
+		Example: fmt.Sprintf("  %[1]s user list", parentCmd.Root().Name()),
 		Args:    cobra.NoArgs,
 		PreRun:  initCredentialsAndUnit,
 		Run: func(cmd *cobra.Command, args []string) {
-			users, e := userDriver.List()
-			if e != nil {
-				fmt.Fprintln(err, e.Error())
+			users, err := userDriver.List()
+			if err != nil {
+				cmd.PrintErrln(err)
 				os.Exit(1)
 			}
 
-			b, e := json.Marshal(struct{ Users user.List }{users})
-			if e != nil {
-				fmt.Fprintln(err, e.Error())
+			b, err := json.Marshal(struct{ Users user.List }{users})
+			if err != nil {
+				cmd.PrintErrln(err)
 				os.Exit(1)
 			}
 
-			fmt.Fprintln(out, string(b))
+			cmd.Println(string(b))
 		},
 	}
-	cmd.SetOut(out)
-	cmd.SetErr(err)
-	cmd.SetIn(in)
-	return cmd
+	parentCmd.AddCommand(cmd)
 }

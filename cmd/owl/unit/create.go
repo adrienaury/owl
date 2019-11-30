@@ -10,14 +10,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// newCreateCommand implements the cli unit list command
-func newCreateCommand(fullName string, err *os.File, out *os.File, in *os.File) *cobra.Command {
+// initCreateCommand initialize the cli unit list command
+func initCreateCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:     "create",
 		Short:   "Create unit",
 		Long:    "",
 		Aliases: []string{"add"},
-		Example: fmt.Sprintf(`  %[1]s unit create <<< '{"id": "my-unit"}'`, fullName),
+		Example: fmt.Sprintf(`  %[1]s unit create <<< '{"id": "my-unit"}'`, parentCmd.Root().Name()),
 		Args:    cobra.NoArgs,
 		PreRun:  initCredentials,
 		Run: func(cmd *cobra.Command, args []string) {
@@ -25,32 +25,29 @@ func newCreateCommand(fullName string, err *os.File, out *os.File, in *os.File) 
 				ID string
 			}{}
 
-			b, e := ioutil.ReadAll(in)
-			if e != nil {
-				fmt.Fprintln(err, e.Error())
+			b, err := ioutil.ReadAll(cmd.InOrStdin())
+			if err != nil {
+				cmd.PrintErrln(err)
 				os.Exit(1)
 			}
 
-			e = json.Unmarshal(b, &u)
-			if e != nil {
-				fmt.Fprintln(err, e.Error())
+			err = json.Unmarshal(b, &u)
+			if err != nil {
+				cmd.PrintErrln(err)
 				os.Exit(1)
 			}
 
-			e = unitDriver.Create(unit.NewUnit(u.ID))
-			if e != nil {
-				fmt.Fprintln(err, e.Error())
+			err = unitDriver.Create(unit.NewUnit(u.ID))
+			if err != nil {
+				cmd.PrintErrln(err)
 				os.Exit(1)
 			}
 
 			flagRealm := cmd.Flag("realm")
 
-			fmt.Fprintf(out, "Created unit '%v' in realm '%v'.", u.ID, flagRealm.Value)
-			fmt.Fprintln(out)
+			cmd.PrintErrf("Created unit '%v' in realm '%v'.", u.ID, flagRealm.Value)
+			cmd.PrintErrln()
 		},
 	}
-	cmd.SetOut(out)
-	cmd.SetErr(err)
-	cmd.SetIn(in)
-	return cmd
+	parentCmd.AddCommand(cmd)
 }

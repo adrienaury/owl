@@ -10,14 +10,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// newCreateCommand implements the cli user list command
-func newCreateCommand(fullName string, err *os.File, out *os.File, in *os.File) *cobra.Command {
+// initCreateCommand initialize the cli user create command
+func initCreateCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:     "create",
 		Short:   "Create user",
 		Long:    "",
 		Aliases: []string{"add"},
-		Example: fmt.Sprintf(`  %[1]s user create <<< '{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"]}'`, fullName),
+		Example: fmt.Sprintf(`  %[1]s user create <<< '{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"]}'`, parentCmd.Root().Name()),
 		Args:    cobra.NoArgs,
 		PreRun:  initCredentialsAndUnit,
 		Run: func(cmd *cobra.Command, args []string) {
@@ -29,33 +29,30 @@ func newCreateCommand(fullName string, err *os.File, out *os.File, in *os.File) 
 				Groups     []string
 			}{}
 
-			b, e := ioutil.ReadAll(in)
-			if e != nil {
-				fmt.Fprintln(err, e.Error())
+			b, err := ioutil.ReadAll(cmd.InOrStdin())
+			if err != nil {
+				cmd.PrintErrln(err)
 				os.Exit(1)
 			}
 
-			e = json.Unmarshal(b, &u)
-			if e != nil {
-				fmt.Fprintln(err, e.Error())
+			err = json.Unmarshal(b, &u)
+			if err != nil {
+				cmd.PrintErrln(err)
 				os.Exit(1)
 			}
 
-			e = userDriver.Create(user.NewUser(u.ID, u.FirstNames, u.LastNames, u.Emails, u.Groups))
-			if e != nil {
-				fmt.Fprintln(err, e.Error())
+			err = userDriver.Create(user.NewUser(u.ID, u.FirstNames, u.LastNames, u.Emails, u.Groups))
+			if err != nil {
+				cmd.PrintErrln(err)
 				os.Exit(1)
 			}
 
 			flagUnit := cmd.Flag("unit")
 			flagRealm := cmd.Flag("realm")
 
-			fmt.Fprintf(out, "Created user '%v' in unit '%v' of realm '%v'.", u.ID, flagUnit.Value, flagRealm.Value)
-			fmt.Fprintln(out)
+			cmd.PrintErrf("Created user '%v' in unit '%v' of realm '%v'.", u.ID, flagUnit.Value, flagRealm.Value)
+			cmd.PrintErrln()
 		},
 	}
-	cmd.SetOut(out)
-	cmd.SetErr(err)
-	cmd.SetIn(in)
-	return cmd
+	parentCmd.AddCommand(cmd)
 }

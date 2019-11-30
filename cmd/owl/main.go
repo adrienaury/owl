@@ -57,13 +57,18 @@ func main() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
+	// fix standards streams
+	rootCmd.SetIn(os.Stdin)
+	rootCmd.SetOut(os.Stdout)
+	rootCmd.SetErr(os.Stderr)
+
 	// global flags
 	rootCmd.PersistentFlags().StringVar(&flagRealm, "realm", "", "target realm")
 	rootCmd.PersistentFlags().StringVar(&flagUnit, "unit", "", "target unit")
 
-	rootCmd.AddCommand(realm.NewCommand("owl", os.Stderr, os.Stdout, os.Stdin))
-	rootCmd.AddCommand(unit.NewCommand("owl", os.Stderr, os.Stdout, os.Stdin))
-	rootCmd.AddCommand(user.NewCommand("owl", os.Stderr, os.Stdout, os.Stdin))
+	realm.InitCommand(rootCmd)
+	unit.InitCommand(rootCmd)
+	user.InitCommand(rootCmd)
 }
 
 func initConfig() {

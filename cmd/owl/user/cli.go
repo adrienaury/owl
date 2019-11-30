@@ -27,22 +27,18 @@ func SetDrivers(us user.Driver, un unit.Driver, r realm.Driver, c credentials.Dr
 	credentialsDriver = c
 }
 
-// NewCommand implements the cli unit command
-func NewCommand(fullName string, err *os.File, out *os.File, in *os.File) *cobra.Command {
+// InitCommand initialize the cli user command
+func InitCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:     "user {list,create,delete,apply} [arguments ...]",
 		Short:   "Manage users",
 		Long:    "",
-		Example: fmt.Sprintf(`  %[1]s user create <<< '{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"]}'`, fullName),
-		Aliases: []string{"us"},
+		Example: fmt.Sprintf(`  %[1]s user create <<< '{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"]}'`, parentCmd.Root().Name()),
 	}
-	cmd.AddCommand(newListCommand(fullName, err, out, in))
-	cmd.AddCommand(newCreateCommand(fullName, err, out, in))
-	cmd.AddCommand(newDeleteCommand(fullName, err, out, in))
-	cmd.SetOut(out)
-	cmd.SetErr(err)
-	cmd.SetIn(in)
-	return cmd
+	parentCmd.AddCommand(cmd)
+	initListCommand(cmd)
+	initCreateCommand(cmd)
+	initDeleteCommand(cmd)
 }
 
 func initCredentialsAndUnit(cmd *cobra.Command, args []string) {

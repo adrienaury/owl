@@ -2,7 +2,6 @@ package realm
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/adrienaury/owl/cmd/owl/session"
 	"github.com/adrienaury/owl/pkg/domain/credentials"
@@ -27,20 +26,17 @@ func SetSession(s *session.Session) {
 	globalSession = s
 }
 
-// NewCommand implements the cli realm command
-func NewCommand(fullName string, err *os.File, out *os.File, in *os.File) *cobra.Command {
+// InitCommand initialize the cli realm command
+func InitCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:     "realm {set,list,login} [arguments ...]",
 		Short:   "Manage realms",
 		Long:    "",
-		Example: fmt.Sprintf("  %[1]s realm set dev ldap://dev.my-company.com/dc=example,dc=com", fullName),
+		Example: fmt.Sprintf("  %[1]s realm set dev ldap://dev.my-company.com/dc=example,dc=com", parentCmd.Root().Name()),
 		Aliases: []string{"rlm"},
 	}
-	cmd.AddCommand(newSetCommand(fullName, err, out, in))
-	cmd.AddCommand(newListCommand(fullName, err, out, in))
-	cmd.AddCommand(newLoginCommand(fullName, err, out, in))
-	cmd.SetOut(out)
-	cmd.SetErr(err)
-	cmd.SetIn(in)
-	return cmd
+	parentCmd.AddCommand(cmd)
+	initSetCommand(cmd)
+	initListCommand(cmd)
+	initLoginCommand(cmd)
 }

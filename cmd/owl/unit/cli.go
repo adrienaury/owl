@@ -31,22 +31,19 @@ func SetSession(s *session.Session) {
 	globalSession = s
 }
 
-// NewCommand implements the cli unit command
-func NewCommand(fullName string, err *os.File, out *os.File, in *os.File) *cobra.Command {
+// InitCommand initialize the cli unit command
+func InitCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:     "unit {list,create,apply,delete,use} [arguments ...]",
-		Short:   "Manage realms",
+		Short:   "Manage units",
 		Long:    "",
-		Example: fmt.Sprintf(`  %[1]s unit create <<< '{"ID": "my-unit"}'`, fullName),
+		Example: fmt.Sprintf(`  %[1]s unit create <<< '{"ID": "my-unit"}'`, parentCmd.Root().Name()),
 	}
-	cmd.AddCommand(newListCommand(fullName, err, out, in))
-	cmd.AddCommand(newCreateCommand(fullName, err, out, in))
-	cmd.AddCommand(newDeleteCommand(fullName, err, out, in))
-	cmd.AddCommand(newUseCommand(fullName, err, out, in))
-	cmd.SetOut(out)
-	cmd.SetErr(err)
-	cmd.SetIn(in)
-	return cmd
+	parentCmd.AddCommand(cmd)
+	initListCommand(cmd)
+	initCreateCommand(cmd)
+	initDeleteCommand(cmd)
+	initUseCommand(cmd)
 }
 
 func initCredentials(cmd *cobra.Command, args []string) {
