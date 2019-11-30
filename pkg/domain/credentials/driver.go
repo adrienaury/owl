@@ -19,6 +19,14 @@ func (d Driver) Set(url string, username string, password string) error {
 	return nil
 }
 
+// Remove ...
+func (d Driver) Remove(url string, username string) error {
+	if err := d.storage.RemoveCredentials(url, username); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Get ...
 func (d Driver) Get(url string, username string) (Credentials, error) {
 	r, err := d.storage.GetCredentials(url, username)

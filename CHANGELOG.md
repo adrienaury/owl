@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned for 0.1.0 "MVP"
 
-- Ability to create and list realms, URL and credentials
+- Ability to create, delete and list realms with JSON input and output
 - Ability to create, delete and list units with JSON input and output
 - Ability to create, delete and list users with JSON input and output
 - Ability to create, delete and list groups with JSON input and output

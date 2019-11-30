@@ -59,6 +59,23 @@ func (s HelperStorage) GetCredentials(url string, user string) (credentials.Cred
 	return credentials.NewCredentials(storedCreds.ServerURL, storedCreds.Username, storedCreds.Secret), nil
 }
 
+// RemoveCredentials ...
+func (s HelperStorage) RemoveCredentials(url string, user string) error {
+	normalizedURL, err := NormalizeLdapServerURLWithCred(url, user)
+	if err != nil {
+		return err
+	}
+
+	err = client.Erase(s.nativeStore, normalizedURL)
+	if isErrCredentialsNotFound(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // IsErrCredentialsNotFound returns true if the error
 // was caused by not having a set of credentials in a store.
 func isErrCredentialsNotFound(err error) bool {

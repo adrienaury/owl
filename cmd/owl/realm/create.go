@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// initCreateCommand initialize the cli unit list command
+// initCreateCommand initialize the cli realm create command
 func initCreateCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:     "create",

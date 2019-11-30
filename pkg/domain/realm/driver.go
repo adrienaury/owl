@@ -27,6 +27,15 @@ func (d Driver) Get(id string) (Realm, error) {
 	return r, nil
 }
 
+// Delete ...
+func (d Driver) Delete(id string) error {
+	err := d.storage.DeleteRealm(id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // List ...
 func (d Driver) List() (List, error) {
 	list, err := d.storage.ListRealms()

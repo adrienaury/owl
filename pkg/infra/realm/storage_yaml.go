@@ -78,6 +78,25 @@ func (s YAMLStorage) GetRealm(id string) (realm.Realm, error) {
 	return nil, nil
 }
 
+// DeleteRealm ...
+func (s YAMLStorage) DeleteRealm(id string) error {
+	structure, err := readFile()
+	if err != nil {
+		return err
+	}
+
+	list := structure.Realms
+
+	result := list[:0]
+	for _, ym := range list {
+		if ym.ID != id {
+			result = append(result, ym)
+		}
+	}
+
+	return writeFile(&YAMLStructure{Version, result})
+}
+
 // ListRealms contained in the local YAML file
 func (s YAMLStorage) ListRealms() (realm.List, error) {
 	structure, err := readFile()
