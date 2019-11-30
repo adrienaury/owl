@@ -47,6 +47,10 @@ var rootCmd = &cobra.Command{
 }
 
 func main() {
+	if _, err := globalSession.Restore(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 	defer globalSession.Dump()
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -72,12 +76,6 @@ func init() {
 }
 
 func initConfig() {
-	// restore session
-	if _, err := globalSession.Restore(); err != nil {
-		// TODO logger
-		fmt.Println(err.Error())
-	}
-
 	if strings.TrimSpace(flagUnit) == "" {
 		flagUnit = globalSession.Unit
 	}
