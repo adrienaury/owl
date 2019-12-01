@@ -13,7 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Create, delete and list units
 - Create, delete and list users
 - Create, delete and list groups
+- Add and remove users from groups
 - Set user password, available hash formats : MD5, SMD5, SHA, SSHA, SHA256, SSHA256, SHA384, SSHA384, SHA512, SSHA512
+- Password sent by mail to user when changed
 - LDAP backend connector
 - JSON, YAML, Table outputs
 - JSON input
