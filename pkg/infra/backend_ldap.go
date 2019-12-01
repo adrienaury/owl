@@ -180,6 +180,28 @@ func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 		return err
 	}
 
+	dnUsers := "ou=users," + dn
+
+	addRequest = ldap.NewAddRequest(dnUsers, []ldap.Control{})
+	addRequest.Attribute("objectClass", []string{"organizationalUnit"})
+	addRequest.Attribute("ou", []string{"users"})
+
+	err = conn.Add(addRequest)
+	if err != nil {
+		return err
+	}
+
+	dnGroups := "ou=groups," + dn
+
+	addRequest = ldap.NewAddRequest(dnGroups, []ldap.Control{})
+	addRequest.Attribute("objectClass", []string{"organizationalUnit"})
+	addRequest.Attribute("ou", []string{"groups"})
+
+	err = conn.Add(addRequest)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -233,7 +255,7 @@ func (b BackendLDAP) ListUsers() (user.List, error) {
 		return nil, fmt.Errorf("invalid credentials")
 	}
 
-	dn := "ou=" + b.unit + "," + b.baseDN
+	dn := "ou=users,ou=" + b.unit + "," + b.baseDN
 
 	sr, err := conn.Search(
 		ldap.NewSearchRequest(
@@ -284,7 +306,7 @@ func (b BackendLDAP) CreateUser(u user.User) error {
 		return fmt.Errorf("invalid credentials")
 	}
 
-	dn := "cn=" + u.ID() + "," + "ou=" + b.unit + "," + b.baseDN
+	dn := "cn=" + u.ID() + ",ou=users,ou=" + b.unit + "," + b.baseDN
 
 	addRequest := ldap.NewAddRequest(dn, []ldap.Control{})
 	addRequest.Attribute("objectClass", []string{"inetOrgPerson"})
@@ -328,7 +350,7 @@ func (b BackendLDAP) DeleteUser(id string) error {
 		return fmt.Errorf("invalid credentials")
 	}
 
-	dn := "cn=" + id + "," + "ou=" + b.unit + "," + b.baseDN
+	dn := "cn=" + id + ",ou=users,ou=" + b.unit + "," + b.baseDN
 
 	delRequest := ldap.NewDelRequest(dn, []ldap.Control{})
 
@@ -361,7 +383,7 @@ func (b BackendLDAP) ListGroups() (group.List, error) {
 		return nil, fmt.Errorf("invalid credentials")
 	}
 
-	dn := "ou=" + b.unit + "," + b.baseDN
+	dn := "ou=groups,ou=" + b.unit + "," + b.baseDN
 
 	sr, err := conn.Search(
 		ldap.NewSearchRequest(
@@ -378,12 +400,13 @@ func (b BackendLDAP) ListGroups() (group.List, error) {
 		return nil, err
 	}
 
+	userDn := "ou=users,ou=" + b.unit + "," + b.baseDN
 	groups := make([]group.Group, len(sr.Entries))
 	for idx, entry := range sr.Entries {
 		usersInGroup := []string{}
 		for _, user := range entry.GetAttributeValues("uniqueMember") {
-			if strings.HasSuffix(user, dn) {
-				usersInGroup = append(usersInGroup, strings.TrimPrefix(strings.TrimSuffix(user, ","+dn), "cn="))
+			if strings.HasSuffix(user, userDn) {
+				usersInGroup = append(usersInGroup, strings.TrimPrefix(strings.TrimSuffix(user, ","+userDn), "cn="))
 			}
 		}
 		groups[idx] = group.NewGroup(
@@ -421,11 +444,11 @@ func (b BackendLDAP) CreateGroup(g group.Group) error {
 		return fmt.Errorf("invalid credentials")
 	}
 
-	dn := "cn=" + g.ID() + "," + "ou=" + b.unit + "," + b.baseDN
+	dn := "cn=" + g.ID() + ",ou=groups,ou=" + b.unit + "," + b.baseDN
 
 	members := []string{}
 	for _, member := range g.Members() {
-		members = append(members, "cn="+member+","+"ou="+b.unit+","+b.baseDN)
+		members = append(members, "cn="+member+",ou=users,ou="+b.unit+","+b.baseDN)
 	}
 
 	addRequest := ldap.NewAddRequest(dn, []ldap.Control{})
