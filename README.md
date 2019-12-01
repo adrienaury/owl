@@ -2,6 +2,12 @@
 
 Owl is a platform agnostic set of tools to manage realms of units, users and groups. Thanks to the modular conception, any backend can theorically be used to store and access data (LDAP, MySQL, MongoDB, ...). For now, only LDAP is supported, please open an issue if another one is needed.
 
+The project is composed of 3 tools :
+
+* Owl CLI : manage your realms with a powerfull devops CLI
+* Owl REST API Server : equivalent to the CLI but with exposed REST Endpoints
+* Owl Web Administration GUI : graphical user interface in front of the REST API Server
+
 ## Concepts
 
 Owl is opiniated on how to manage user accounts, but it is also highly customizable.
@@ -24,9 +30,10 @@ Username | Used as login account to the realm backend
 
 Units are logical grouping of users and groups, used to mimic real-world organization (like OU in LDAP).
 
-Property | Description
---       | --
-ID       | Unique unit identifier
+Property    | Description
+--          | --
+ID          | Unique unit identifier
+Description | Description of the unit
 
 ### Users
 
@@ -55,7 +62,7 @@ First principle : Owl CLI respect the UNIX philosophy.
 > Write programs to work together.\
 > Write programs to handle text streams, because that is a universal interface.
 >
-> -- <cite>Douglas McIlroy, inventor of Unix pipelines</cite>
+> -- *Douglas McIlroy, inventor of Unix pipelines*
 
 How ?
 
