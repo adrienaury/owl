@@ -275,8 +275,8 @@ If you want to contribute, please check CONTRIBUTING.md
 
 ## Links
 
-* Issue Tracker: github.com/adrienaury/mailmock/issues
-* Source Code: github.com/adrienaury/mailmock
+* Issue Tracker: github.com/adrienaury/owl/issues
+* Source Code: github.com/adrienaury/owl
 
 ## Support
 
