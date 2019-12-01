@@ -12,6 +12,7 @@ import (
 	"github.com/adrienaury/owl/cmd/owl/user"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // Provisioned by ldflags
@@ -27,8 +28,9 @@ var (
 	globalSession = session.NewSession(path.Join(home, "session.yaml"))
 
 	// global flags
-	flagRealm string
-	flagUnit  string
+	flagOutput string
+	flagRealm  string
+	flagUnit   string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -38,11 +40,10 @@ var rootCmd = &cobra.Command{
 	Long:  `Owl is a tools to manage realms of units, users and groups.`,
 	Example: `  owl realm set dev ldap://dev.my-company.com/dc=example,dc=com
   owl realm login dev
-  owl unit apply <<< '{"id": "my-unit"}'
+  owl unit create <<< '{"ID": "my-unit"}'
   owl unit use my-unit
-  owl user create <<< '{"id": "batman", "first-name": ["Bruce"], "last-name": ["Wayne"]}'
-  owl user apply joker first-name=Arthur last-name=Flake email=arthur.flake@gotham.dc
-  owl user list -o table`,
+  owl user create <<< '{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"]}'
+  owl user ls`,
 	Version: fmt.Sprintf("%v (commit=%v date=%v by=%v)", version, commit, buildDate, builtBy),
 }
 
@@ -66,7 +67,13 @@ func init() {
 	rootCmd.SetOut(os.Stdout)
 	rootCmd.SetErr(os.Stderr)
 
+	defaultOutput := "json"
+	if terminal.IsTerminal(int(os.Stdin.Fd())) {
+		defaultOutput = "table"
+	}
+
 	// global flags
+	rootCmd.PersistentFlags().StringVarP(&flagOutput, "output", "o", defaultOutput, "output format, one of json|yaml|table")
 	rootCmd.PersistentFlags().StringVar(&flagRealm, "realm", "", "target realm")
 	rootCmd.PersistentFlags().StringVar(&flagUnit, "unit", "", "target unit")
 

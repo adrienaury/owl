@@ -12,6 +12,7 @@ type Realm interface {
 	Username() string
 	String() string
 	MarshalJSON() ([]byte, error)
+	MarshalYAML() (interface{}, error)
 }
 
 type realm struct {
@@ -40,6 +41,9 @@ func (r realm) MarshalJSON() ([]byte, error) {
 	}
 	return b, nil
 }
+func (r realm) MarshalYAML() (interface{}, error) {
+	return struct{ ID, URL, Username string }{r.id, r.url, r.username}, nil
+}
 
 // List ...
 type List interface {
@@ -48,6 +52,7 @@ type List interface {
 	Len() uint
 	String() string
 	MarshalJSON() ([]byte, error)
+	MarshalYAML() (interface{}, error)
 }
 
 type realmlist struct {
@@ -69,4 +74,7 @@ func (l realmlist) MarshalJSON() ([]byte, error) {
 		return nil, e
 	}
 	return b, nil
+}
+func (l realmlist) MarshalYAML() (interface{}, error) {
+	return l.slice, nil
 }

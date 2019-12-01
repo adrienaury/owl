@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
+	"text/tabwriter"
 
 	"github.com/adrienaury/owl/pkg/domain/realm"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 // initListCommand initialize the cli realm list command
@@ -25,13 +28,38 @@ func initListCommand(parentCmd *cobra.Command) {
 				os.Exit(1)
 			}
 
-			b, err := json.Marshal(struct{ Realms realm.List }{realms})
-			if err != nil {
-				cmd.PrintErrln(err)
-				os.Exit(1)
+			output := "json"
+			flagOutput := cmd.Flag("output")
+			if flagOutput != nil && strings.TrimSpace(flagOutput.Value.String()) != "" {
+				output = flagOutput.Value.String()
 			}
 
-			cmd.Println(string(b))
+			switch output {
+			case "json":
+				b, err := json.Marshal(struct{ Realms realm.List }{realms})
+				if err != nil {
+					cmd.PrintErrln(err)
+					os.Exit(1)
+				}
+				cmd.Println(string(b))
+			case "yaml":
+				b, err := yaml.Marshal(struct{ Realms realm.List }{realms})
+				if err != nil {
+					cmd.PrintErrln(err)
+					os.Exit(1)
+				}
+				cmd.Println(string(b))
+			case "table":
+				w := tabwriter.NewWriter(cmd.OutOrStderr(), 0, 0, 2, ' ', 0)
+				fmt.Fprintf(w, "%v\t%v\t%v\n", "ID", "Username", "URL")
+				for _, realm := range realms.All() {
+					fmt.Fprintf(w, "%v\t%v\t%v\n", realm.ID(), realm.Username(), realm.URL())
+				}
+				w.Flush()
+			default:
+				cmd.PrintErrf("Invalid output format : %v", output)
+				cmd.PrintErrln()
+			}
 		},
 	}
 	parentCmd.AddCommand(cmd)
