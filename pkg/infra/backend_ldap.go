@@ -141,8 +141,12 @@ func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
 		return nil, err
 	}
 
-	if len(sr.Entries) != 1 {
+	if len(sr.Entries) > 1 {
 		return nil, fmt.Errorf("assertion failed, should have exactly 1 unit named %v but got %v", id, len(sr.Entries))
+	}
+
+	if len(sr.Entries) == 0 {
+		return nil, nil
 	}
 
 	entry := sr.Entries[0]
@@ -283,6 +287,62 @@ func (b BackendLDAP) ListUsers() (user.List, error) {
 	}
 
 	return user.NewList(users), nil
+}
+
+// GetUser ..
+func (b BackendLDAP) GetUser(id string) (user.User, error) {
+	if b.creds == nil {
+		return nil, fmt.Errorf("no credentials")
+	}
+
+	if strings.TrimSpace(b.unit) == "" {
+		return nil, fmt.Errorf("no unit selected")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return nil, err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return nil, fmt.Errorf("invalid credentials")
+	}
+
+	dn := "ou=users,ou=" + b.unit + "," + b.baseDN
+
+	sr, err := conn.Search(
+		ldap.NewSearchRequest(
+			dn,
+			ldap.ScopeSingleLevel,
+			ldap.NeverDerefAliases,
+			0, 0, false,
+			"(cn="+id+")",
+			[]string{"cn", "givenName", "sn", "mail"},
+			nil,
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(sr.Entries) > 1 {
+		return nil, fmt.Errorf("assertion failed, should have exactly 1 user named %v but got %v", id, len(sr.Entries))
+	}
+
+	if len(sr.Entries) == 0 {
+		return nil, nil
+	}
+
+	entry := sr.Entries[0]
+
+	return user.NewUser(
+		entry.GetAttributeValue("cn"),
+		entry.GetAttributeValues("givenName"),
+		entry.GetAttributeValues("sn"),
+		entry.GetAttributeValues("mail"),
+	), nil
 }
 
 // CreateUser ...
@@ -456,8 +516,12 @@ func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
 		return nil, err
 	}
 
-	if len(sr.Entries) != 1 {
+	if len(sr.Entries) > 1 {
 		return nil, fmt.Errorf("assertion failed, should have exactly 1 group named %v but got %v", id, len(sr.Entries))
+	}
+
+	if len(sr.Entries) == 0 {
+		return nil, nil
 	}
 
 	entry := sr.Entries[0]
