@@ -102,7 +102,7 @@ func (b BackendLDAP) ListUnits() (unit.List, error) {
 	units := make([]unit.Unit, len(sr.Entries))
 	for idx, entry := range sr.Entries {
 		units[idx] = unit.NewUnit(
-			entry.GetAttributeValues("ou")[0],
+			entry.GetAttributeValue("ou"),
 		)
 	}
 
@@ -148,7 +148,7 @@ func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
 	entry := sr.Entries[0]
 
 	return unit.NewUnit(
-		entry.GetAttributeValues("ou")[0],
+		entry.GetAttributeValue("ou"),
 	), nil
 }
 
@@ -275,7 +275,7 @@ func (b BackendLDAP) ListUsers() (user.List, error) {
 	users := make([]user.User, len(sr.Entries))
 	for idx, entry := range sr.Entries {
 		users[idx] = user.NewUser(
-			entry.GetAttributeValues("cn")[0],
+			entry.GetAttributeValue("cn"),
 			entry.GetAttributeValues("givenName"),
 			entry.GetAttributeValues("sn"),
 			entry.GetAttributeValues("mail"),
@@ -410,7 +410,7 @@ func (b BackendLDAP) ListGroups() (group.List, error) {
 			}
 		}
 		groups[idx] = group.NewGroup(
-			entry.GetAttributeValues("cn")[0],
+			entry.GetAttributeValue("cn"),
 			usersInGroup...,
 		)
 	}
@@ -420,7 +420,61 @@ func (b BackendLDAP) ListGroups() (group.List, error) {
 
 // GetGroup ...
 func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
-	return nil, nil
+	if b.creds == nil {
+		return nil, fmt.Errorf("no credentials")
+	}
+
+	if strings.TrimSpace(b.unit) == "" {
+		return nil, fmt.Errorf("no unit selected")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return nil, err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return nil, fmt.Errorf("invalid credentials")
+	}
+
+	dn := "cn=" + id + ",ou=groups,ou=" + b.unit + "," + b.baseDN
+
+	sr, err := conn.Search(
+		ldap.NewSearchRequest(
+			dn,
+			ldap.ScopeWholeSubtree,
+			ldap.NeverDerefAliases,
+			0, 0, false,
+			"(cn="+id+")",
+			[]string{"cn", "uniqueMember"},
+			nil,
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(sr.Entries) != 1 {
+		return nil, fmt.Errorf("assertion failed, should have exactly 1 group named %v but got %v", id, len(sr.Entries))
+	}
+
+	entry := sr.Entries[0]
+	members := entry.GetAttributeValues("uniqueMember")
+
+	userDn := "ou=users,ou=" + b.unit + "," + b.baseDN
+	userIDs := make([]string, len(members))
+	for _, member := range members {
+		if strings.HasSuffix(member, userDn) {
+			userIDs = append(userIDs, strings.TrimPrefix(strings.TrimSuffix(member, ","+userDn), "cn="))
+		}
+	}
+
+	return group.NewGroup(
+		entry.GetAttributeValue("cn"),
+		userIDs...,
+	), nil
 }
 
 // CreateGroup ...
@@ -470,7 +524,80 @@ func (b BackendLDAP) DeleteGroup(id string) error {
 }
 
 // AddToGroup ...
-func (b BackendLDAP) AddToGroup(ids ...string) error {
+func (b BackendLDAP) AddToGroup(id string, memberIDs ...string) error {
+	if b.creds == nil {
+		return fmt.Errorf("no credentials")
+	}
+
+	if strings.TrimSpace(b.unit) == "" {
+		return fmt.Errorf("no unit selected")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return fmt.Errorf("invalid credentials")
+	}
+
+	dn := "cn=" + id + ",ou=groups,ou=" + b.unit + "," + b.baseDN
+
+	members := []string{}
+	for _, member := range memberIDs {
+		members = append(members, "cn="+member+",ou=users,ou="+b.unit+","+b.baseDN)
+	}
+
+	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
+	modRequest.Add("uniqueMember", members)
+
+	err = conn.Modify(modRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RemoveFromGroup ...
+func (b BackendLDAP) RemoveFromGroup(id string, memberIDs ...string) error {
+	if b.creds == nil {
+		return fmt.Errorf("no credentials")
+	}
+
+	if strings.TrimSpace(b.unit) == "" {
+		return fmt.Errorf("no unit selected")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return fmt.Errorf("invalid credentials")
+	}
+
+	dn := "cn=" + id + ",ou=groups,ou=" + b.unit + "," + b.baseDN
+
+	members := []string{}
+	for _, member := range memberIDs {
+		members = append(members, "cn="+member+",ou=users,ou="+b.unit+","+b.baseDN)
+	}
+
+	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
+	modRequest.Delete("uniqueMember", members)
+
+	err = conn.Modify(modRequest)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

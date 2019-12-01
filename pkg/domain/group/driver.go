@@ -47,8 +47,17 @@ func (d Driver) Delete(id string) error {
 }
 
 // AddMembers ...
-func (d Driver) AddMembers(ids ...string) error {
-	err := d.backend.AddToGroup(ids...)
+func (d Driver) AddMembers(id string, memberIDs ...string) error {
+	err := d.backend.AddToGroup(id, memberIDs...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// RemoveMembers ...
+func (d Driver) RemoveMembers(id string, memberIDs ...string) error {
+	err := d.backend.RemoveFromGroup(id, memberIDs...)
 	if err != nil {
 		return err
 	}
