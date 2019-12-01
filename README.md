@@ -4,7 +4,7 @@ Owl is a set of tools to manage realms of units, users and groups.
 
 ## Concepts
 
-Each object has a unique identifier and a set of prefefined properties that can be multivalued.
+Each object has a unique identifier and a set of prefefined properties that can be multivalued. Additional properties can be configured.
 
 ### Realms
 
@@ -28,7 +28,6 @@ ID          | Unique user identifier
 FirstNames  | First names [multivalued property]
 LastNames   | Last names [multivalued property]
 Emails      | Email owned by the user [multivalued property]
-Groups      | Ids of groups the user is member of [multivalued property]
 
 ### Groups
 
@@ -58,13 +57,13 @@ How ?
 #### Examples
 
 ```text
-$ owl realm set dev ldap://dev.my-company.com/dc=example,dc=com
+$ owl realm set dev ldap://dev.my-company.com/dc=example,dc=com cn=admin,dc=example,dc=com
 Set realm 'dev' to 'ldap://dev.my-company.com/dc=example,dc=com'.
 
 $ owl realm list -o table
-Identifier  Username  URL
-dev         admin     ldap://dev.my-company.com/dc=example,dc=com
-prod        admin     ldap://prod.my-company.com/dc=example,dc=com
+ID    Username                    URL
+dev   cn=admin,dc=example,dc=com  ldap://dev.my-company.com/dc=example,dc=com
+prod  cn=admin,dc=example,dc=com  ldap://prod.my-company.com/dc=example,dc=com
 
 $ owl realm login dev
 Password :

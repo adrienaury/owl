@@ -14,6 +14,7 @@ type User interface {
 	Groups() []string
 	String() string
 	MarshalJSON() ([]byte, error)
+	MarshalYAML() (interface{}, error)
 }
 
 type user struct {
@@ -62,6 +63,21 @@ func (u user) MarshalJSON() ([]byte, error) {
 	}
 	return b, nil
 }
+func (u user) MarshalYAML() (interface{}, error) {
+	return struct {
+		ID         string
+		FirstNames []string
+		LastNames  []string
+		Emails     []string
+		Groups     []string
+	}{
+		u.id,
+		u.firstNames,
+		u.lastNames,
+		u.emails,
+		u.groups,
+	}, nil
+}
 
 // List ...
 type List interface {
@@ -70,6 +86,7 @@ type List interface {
 	Len() uint
 	String() string
 	MarshalJSON() ([]byte, error)
+	MarshalYAML() (interface{}, error)
 }
 
 type userlist struct {
@@ -91,4 +108,7 @@ func (l userlist) MarshalJSON() ([]byte, error) {
 		return nil, e
 	}
 	return b, nil
+}
+func (l userlist) MarshalYAML() (interface{}, error) {
+	return l.slice, nil
 }

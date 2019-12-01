@@ -10,6 +10,7 @@ type Unit interface {
 	ID() string
 	String() string
 	MarshalJSON() ([]byte, error)
+	MarshalYAML() (interface{}, error)
 }
 
 type unit struct {
@@ -32,6 +33,9 @@ func (u unit) MarshalJSON() ([]byte, error) {
 	}
 	return b, nil
 }
+func (u unit) MarshalYAML() (interface{}, error) {
+	return struct{ ID string }{u.id}, nil
+}
 
 // List ...
 type List interface {
@@ -40,6 +44,7 @@ type List interface {
 	Len() uint
 	String() string
 	MarshalJSON() ([]byte, error)
+	MarshalYAML() (interface{}, error)
 }
 
 type unitlist struct {
@@ -61,4 +66,7 @@ func (l unitlist) MarshalJSON() ([]byte, error) {
 		return nil, e
 	}
 	return b, nil
+}
+func (l unitlist) MarshalYAML() (interface{}, error) {
+	return l.slice, nil
 }
