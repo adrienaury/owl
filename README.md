@@ -76,11 +76,12 @@ Connected to realm 'dev' as user 'admin'.
 $ owl unit list -o table
 The realm contains no unit.
 
-$ owl unit create <<< '{"ID": "my-unit"}'
+$ owl unit create <<< '{"ID": "my-unit", "Description": "Test unit"}'
 Created unit 'my-unit' in realm 'dev'.
 
-$ owl unit list
-{"units": [{"ID": "my-unit"}]}
+$ owl unit list -o table
+ID       Description
+my-unit  Test unit
 
 $ owl unit use my-unit
 Using unit 'my-unit' for next commands.
@@ -91,29 +92,29 @@ Created user 'batman' in unit 'my-unit' of realm 'dev'.
 $ owl user apply <<< '{"ID": "batman", "Emails": ["bruce.wayne@gotham.dc"]}'
 Modified user 'batman' in unit 'my-unit' of realm 'dev'.
 
-$ owl user apply joker FirstNames=Arthur LastNames=Flake Emails=arthur.flake@gotham.dc
+$ owl user apply joker firstname=Arthur lastname=Flake email=arthur.flake@gotham.dc
 Created user 'joker' in unit 'my-unit' of realm 'dev'.
 
-$ owl user add joker FirstNames="Jack"
+$ owl user append joker firstname="Jack"
 Modifier user 'joker' in unit 'my-unit' of realm 'dev'.
 
 $ owl group create bad-guys member=joker member=batman
 Created group 'bad-guys' in unit 'my-unit' of realm 'dev'.
 
-$ owl group remove member=batman
+$ owl group member remove bad-guys batman
 Modified group 'bad-guys' in unit 'my-unit' of realm 'dev'.
 
 $ owl user list -o table
-Identifier  FirstNames    LastNames  Email                   Group
-batman      Bruce         Wayne      bruce.wayne@gotham.dc
-joker       Arthur, Jack  Flake      arthur.flake@gotham.dc  bad-guys
+ID      First Names   Last Names  E-mails
+batman  Bruce         Wayne       bruce.wayne@gotham.dc
+joker   Arthur, Jack  Flake       arthur.flake@gotham.dc
 
-$ owl user list
-{"users": [{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"], "Emails": ["bruce.wayne@gotham.dc"]}, {"ID": "joker", "FirstNames": ["Arthur", "Jack"], "LastNames": ["Flake"], "Emails": ["arthur.flake@gotham.dc"]}]}
+$ owl user list -o json
+{"Users": [{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"], "Emails": ["bruce.wayne@gotham.dc"]}, {"ID": "joker", "FirstNames": ["Arthur", "Jack"], "LastNames": ["Flake"], "Emails": ["arthur.flake@gotham.dc"]}]}
 
-$ owl user list | jq
+$ owl user list -o json | jq
 {
-    "users": [
+    "Users": [
         {
             "ID": "batman",
             "FirstNames": [
@@ -142,13 +143,13 @@ $ owl user list | jq
     ]
 }
 
-$ owl user ls | jq ".Users | [.[].ID]"
+$ owl user ls -o json | jq ".Users | [.[].ID]"
 [
   "batman",
   "joker"
 ]
 
-$ owl user list | owl import --realm=prod --unit=organization
+$ owl user list -o json | owl import --realm=prod --unit=organization
 Imported 2 users in unit 'organization' of realm 'prod'.
 ```
 

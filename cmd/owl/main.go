@@ -39,12 +39,12 @@ var rootCmd = &cobra.Command{
 	Use:   "owl [action]",
 	Short: "Command line tools for managing realms of units, users and groups",
 	Long:  `Owl is a tools to manage realms of units, users and groups.`,
-	Example: `  owl realm set dev ldap://dev.my-company.com/dc=example,dc=com
+	Example: `  owl realm set dev ldap://dev.my-company.com/dc=my-company,dc=com cn=admin,dc=my-company,dc=com
   owl realm login dev
   owl unit create <<< '{"ID": "my-unit"}'
   owl unit use my-unit
   owl user create <<< '{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"]}'
-  owl user ls`,
+  owl user ls -o=json | owl import --realm=prod`,
 	Version: fmt.Sprintf("%v (commit=%v date=%v by=%v)", version, commit, buildDate, builtBy),
 }
 
