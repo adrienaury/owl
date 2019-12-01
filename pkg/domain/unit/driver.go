@@ -37,6 +37,28 @@ func (d Driver) Create(u Unit) error {
 	return nil
 }
 
+// Apply ...
+func (d Driver) Apply(u Unit) (bool, error) {
+	user, err := d.backend.GetUnit(u.ID())
+	if err != nil {
+		return false, err
+	}
+
+	exists := false
+	if user != nil {
+		exists = true
+		err = d.backend.UpdateUnit(u)
+	} else {
+		err = d.backend.CreateUnit(u)
+	}
+
+	if err != nil {
+		return exists, err
+	}
+
+	return exists, nil
+}
+
 // Delete ...
 func (d Driver) Delete(id string) error {
 	err := d.backend.DeleteUnit(id)

@@ -37,11 +37,12 @@ func InitCommand(parentCmd *cobra.Command) {
 		Use:     "unit {list,create,apply,delete,use} [arguments ...]",
 		Short:   "Manage units",
 		Long:    "",
-		Example: fmt.Sprintf(`  %[1]s unit create <<< '{"ID": "my-unit"}'`, parentCmd.Root().Name()),
+		Example: fmt.Sprintf(`  %[1]s unit create <<< '{"ID": "my-unit", "Description": "Test unit"}'`, parentCmd.Root().Name()),
 	}
 	parentCmd.AddCommand(cmd)
 	initListCommand(cmd)
 	initCreateCommand(cmd)
+	initApplyCommand(cmd)
 	initDeleteCommand(cmd)
 	initUseCommand(cmd)
 }

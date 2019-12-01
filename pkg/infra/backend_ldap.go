@@ -212,6 +212,36 @@ func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 	return nil
 }
 
+// UpdateUnit ...
+func (b BackendLDAP) UpdateUnit(u unit.Unit) error {
+	if b.creds == nil {
+		return fmt.Errorf("no credentials")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return fmt.Errorf("invalid credentials")
+	}
+
+	dn := "ou=" + u.ID() + "," + b.baseDN
+
+	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
+	modRequest.Replace("description", []string{u.Description()})
+
+	err = conn.Modify(modRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DeleteUnit ...
 func (b BackendLDAP) DeleteUnit(id string) error {
 	if b.creds == nil {
