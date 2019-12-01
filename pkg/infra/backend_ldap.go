@@ -389,6 +389,48 @@ func (b BackendLDAP) CreateUser(u user.User) error {
 	return nil
 }
 
+// UpdateUser ...
+func (b BackendLDAP) UpdateUser(u user.User) error {
+	if b.creds == nil {
+		return fmt.Errorf("no credentials")
+	}
+
+	if strings.TrimSpace(b.unit) == "" {
+		return fmt.Errorf("no unit selected")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return fmt.Errorf("invalid credentials")
+	}
+
+	dn := "cn=" + u.ID() + ",ou=users,ou=" + b.unit + "," + b.baseDN
+
+	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
+	if len(u.FirstNames()) > 0 {
+		modRequest.Replace("givenName", u.FirstNames())
+	}
+	if len(u.LastNames()) > 0 {
+		modRequest.Replace("sn", u.LastNames())
+	}
+	if len(u.Emails()) > 0 {
+		modRequest.Replace("mail", u.Emails())
+	}
+
+	err = conn.Modify(modRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DeleteUser ...
 func (b BackendLDAP) DeleteUser(id string) error {
 	if b.creds == nil {
