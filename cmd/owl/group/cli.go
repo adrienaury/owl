@@ -41,6 +41,7 @@ func InitCommand(parentCmd *cobra.Command) {
 	parentCmd.AddCommand(cmd)
 	initListCommand(cmd)
 	initCreateCommand(cmd)
+	initDeleteCommand(cmd)
 	initMemberCommand(cmd)
 }
 

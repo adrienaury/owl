@@ -520,6 +520,34 @@ func (b BackendLDAP) CreateGroup(g group.Group) error {
 
 // DeleteGroup ...
 func (b BackendLDAP) DeleteGroup(id string) error {
+	if b.creds == nil {
+		return fmt.Errorf("no credentials")
+	}
+
+	if strings.TrimSpace(b.unit) == "" {
+		return fmt.Errorf("no unit selected")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return fmt.Errorf("invalid credentials")
+	}
+
+	dn := "cn=" + id + ",ou=groups,ou=" + b.unit + "," + b.baseDN
+
+	delRequest := ldap.NewDelRequest(dn, []ldap.Control{})
+
+	err = conn.Del(delRequest)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
