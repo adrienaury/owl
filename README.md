@@ -1,16 +1,18 @@
 # Owl
 
-Owl is a platform agnostic set of tools to manage realms of units, users and groups.
+Owl is a platform agnostic set of tools to manage realms of units, users and groups. Thanks to the modular conception, any backend can theorically be used to store and access data (LDAP, MySQL, MongoDB, ...). For now, only LDAP is supported, please open an issue if another one is needed.
 
 ## Concepts
 
-Owl is very opiniated on how to manage user accounts, but it is also highly customizable.
+Owl is opiniated on how to manage user accounts, but it is also highly customizable.
 
-Only 4 types of object are manipulated.
+There is only 4 types of object manipulated.
 
 Each object has a unique identifier and a set of prefefined properties that can be multivalued. Additional properties can be configured.
 
 ### Realms
+
+Realms are associated with servers, instance, etc... where the data is persisted. Each realm is in isolation from other realms.
 
 Property | Description
 --       | --
@@ -19,6 +21,8 @@ URL      | Location of the realm
 Username | Used as login account to the realm backend
 
 ### Units
+
+Units are logical grouping of users and groups, used to mimic real-world organization (like OU in LDAP).
 
 Property | Description
 --       | --
@@ -45,18 +49,28 @@ Members  | Ids of users in the group [multivalued property]
 
 ### Owl CLI
 
-Owl CLI respect the UNIX philosophy :
+First principle : Owl CLI respect the UNIX philosophy.
 
-* Write programs that do one thing and do it well.
-* Write programs to work together.
-* Write programs to handle text streams, because that is a universal interface.
+> Write programs that do one thing and do it well.\
+> Write programs to work together.\
+> Write programs to handle text streams, because that is a universal interface.
+>
+> -- <cite>Douglas McIlroy, inventor of Unix pipelines</cite>
 
 How ?
 
-* manage realms, units, users and groups - that's it
+* it's simple, no complicated fanciness (like in LDAP for example)
 * read inputs as json on the standard input by default
 * write outputs as json on the standard output by default
 * write logs on the standard error by default
+
+Second principle : Owl is a devops tool.
+
+Why ?
+
+* it can be used by a human operator or automated by scripting
+* local configuration is stored "as code" in the current directory
+* every object can be serialized as JSON or YAML, if you need to store them in a code repository (like Git)
 
 #### Examples
 
