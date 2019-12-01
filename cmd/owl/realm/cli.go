@@ -29,7 +29,7 @@ func SetSession(s *session.Session) {
 // InitCommand initialize the cli realm command
 func InitCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:     "realm {set,list,login} [arguments ...]",
+		Use:     "realm {set,create,delete,list,login} [arguments ...]",
 		Short:   "Manage realms",
 		Long:    "",
 		Example: fmt.Sprintf("  %[1]s realm set dev ldap://dev.my-company.com/dc=example,dc=com", parentCmd.Root().Name()),

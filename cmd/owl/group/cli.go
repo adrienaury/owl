@@ -33,10 +33,11 @@ func SetDrivers(gd group.Driver, us user.Driver, un unit.Driver, r realm.Driver,
 // InitCommand initialize the cli group command
 func InitCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:     "group {list,create,delete,apply,member} [arguments ...]",
+		Use:     "group {list,create,delete,member} [arguments ...]",
 		Short:   "Manage groups",
 		Long:    "",
 		Example: fmt.Sprintf(`  %[1]s group create <<< '{"ID": "bad-guys", "Members": ["batman", "joker"]}'`, parentCmd.Root().Name()),
+		Aliases: []string{"grp"},
 	}
 	parentCmd.AddCommand(cmd)
 	initListCommand(cmd)

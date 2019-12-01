@@ -17,7 +17,7 @@ func initCreateCommand(parentCmd *cobra.Command) {
 		Short:   "Create unit",
 		Long:    "",
 		Aliases: []string{"add"},
-		Example: fmt.Sprintf(`  %[1]s unit create <<< '{"ID": "my-unit"}'`, parentCmd.Root().Name()),
+		Example: fmt.Sprintf(`  %[1]s unit create <<< '{"ID": "my-unit", "Description": "Test unit"}'`, parentCmd.Root().Name()),
 		Args: func(cmd *cobra.Command, args []string) error {
 			err1 := cobra.ExactArgs(2)(cmd, args)
 			err2 := cobra.NoArgs(cmd, args)
