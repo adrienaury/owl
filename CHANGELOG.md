@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned for 0.1.0 "MVP"
 
-- Create, delete and list realms
-- Create, delete and list units
-- Create, delete and list users
-- Create, delete and list groups
+- Create, update, delete and list realms
+- Create, update, delete and list units
+- Create, update, delete and list users
+- Create, update, delete and list groups
 - Add and remove users from groups
 - Set user password, available hash formats : MD5, SMD5, SHA, SSHA, SHA256, SSHA256, SHA384, SSHA384, SHA512, SSHA512
 - Password sent by mail to user when changed
