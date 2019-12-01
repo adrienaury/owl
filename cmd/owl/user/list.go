@@ -52,7 +52,7 @@ func initListCommand(parentCmd *cobra.Command) {
 				cmd.Println(string(b))
 			case "table":
 				w := tabwriter.NewWriter(cmd.OutOrStderr(), 0, 0, 2, ' ', 0)
-				fmt.Fprintf(w, "%v\t%v\t%v\t%v\n", "ID", "First Names", "Last Names", "E-Mails")
+				fmt.Fprintf(w, "%v\t%v\t%v\t%v\n", "ID", "First Names", "Last Names", "E-mails")
 				for _, user := range users.All() {
 					fmt.Fprintf(w, "%v\t%v\t%v\t%v\n", user.ID(), strings.Join(user.FirstNames(), ", "), strings.Join(user.LastNames(), ", "), strings.Join(user.Emails(), ", "))
 				}

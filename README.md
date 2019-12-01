@@ -27,7 +27,7 @@ Property    | Description
 ID          | Unique user identifier
 FirstNames  | First names [multivalued property]
 LastNames   | Last names [multivalued property]
-Emails      | Email owned by the user [multivalued property]
+Emails      | E-mails owned by the user [multivalued property]
 
 ### Groups
 
