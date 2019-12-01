@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/adrienaury/owl/cmd/owl/group"
 	"github.com/adrienaury/owl/cmd/owl/realm"
 	"github.com/adrienaury/owl/cmd/owl/session"
 	"github.com/adrienaury/owl/cmd/owl/unit"
@@ -80,6 +81,7 @@ func init() {
 	realm.InitCommand(rootCmd)
 	unit.InitCommand(rootCmd)
 	user.InitCommand(rootCmd)
+	group.InitCommand(rootCmd)
 }
 
 func initConfig() {
@@ -96,6 +98,7 @@ func initConfig() {
 	realmDriver := newRealmDriver()
 	unitDriver := newUnitDriver(&backend)
 	userDriver := newUserDriver(&backend)
+	groupDriver := newGroupDriver(&backend)
 
 	realm.SetDrivers(realmDriver, credentialsDriver)
 	realm.SetSession(globalSession)
@@ -104,6 +107,8 @@ func initConfig() {
 	unit.SetSession(globalSession)
 
 	user.SetDrivers(userDriver, unitDriver, realmDriver, credentialsDriver)
+
+	group.SetDrivers(groupDriver, userDriver, unitDriver, realmDriver, credentialsDriver)
 }
 
 func initHome() string {

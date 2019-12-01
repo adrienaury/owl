@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/adrienaury/owl/pkg/domain/credentials"
+	"github.com/adrienaury/owl/pkg/domain/group"
 	"github.com/adrienaury/owl/pkg/domain/unit"
 	"github.com/adrienaury/owl/pkg/domain/user"
 
@@ -336,6 +337,81 @@ func (b BackendLDAP) DeleteUser(id string) error {
 		return err
 	}
 
+	return nil
+}
+
+// ListGroups ...
+func (b BackendLDAP) ListGroups() (group.List, error) {
+	if b.creds == nil {
+		return nil, fmt.Errorf("no credentials")
+	}
+
+	if strings.TrimSpace(b.unit) == "" {
+		return nil, fmt.Errorf("no unit selected")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return nil, err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return nil, fmt.Errorf("invalid credentials")
+	}
+
+	dn := "ou=" + b.unit + "," + b.baseDN
+
+	sr, err := conn.Search(
+		ldap.NewSearchRequest(
+			dn,
+			ldap.ScopeWholeSubtree,
+			ldap.NeverDerefAliases,
+			0, 0, false,
+			"(objectClass=groupOfUniqueNames)",
+			[]string{"cn", "uniqueMember"},
+			nil,
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	groups := make([]group.Group, len(sr.Entries))
+	for idx, entry := range sr.Entries {
+		usersInGroup := []string{}
+		for _, user := range entry.GetAttributeValues("uniqueMember") {
+			if strings.HasSuffix(user, dn) {
+				usersInGroup = append(usersInGroup, strings.TrimSuffix(user, ","+dn))
+			}
+		}
+		groups[idx] = group.NewGroup(
+			entry.GetAttributeValues("cn")[0],
+			usersInGroup...,
+		)
+	}
+
+	return group.NewList(groups), nil
+}
+
+// GetGroup ...
+func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
+	return nil, nil
+}
+
+// CreateGroup ...
+func (b BackendLDAP) CreateGroup(group.Group) error {
+	return nil
+}
+
+// DeleteGroup ...
+func (b BackendLDAP) DeleteGroup(id string) error {
+	return nil
+}
+
+// AddToGroup ...
+func (b BackendLDAP) AddToGroup(ids ...string) error {
 	return nil
 }
 
