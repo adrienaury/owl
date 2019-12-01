@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/adrienaury/owl/pkg/domain/group"
 	"github.com/spf13/cobra"
@@ -18,7 +19,7 @@ func initCreateCommand(parentCmd *cobra.Command) {
 		Long:    "",
 		Aliases: []string{"add"},
 		Example: fmt.Sprintf(`  %[1]s group create <<< '{"ID": "my-group"}'`, parentCmd.Root().Name()),
-		Args:    cobra.NoArgs,
+		Args:    cobra.ArbitraryArgs,
 		PreRun:  initCredentialsAndUnit,
 		Run: func(cmd *cobra.Command, args []string) {
 			g := struct {
@@ -26,19 +27,31 @@ func initCreateCommand(parentCmd *cobra.Command) {
 				Members []string
 			}{}
 
-			b, err := ioutil.ReadAll(cmd.InOrStdin())
-			if err != nil {
-				cmd.PrintErrln(err)
-				os.Exit(1)
+			if len(args) > 0 {
+				g.ID = args[0]
+				for _, arg := range args[1:] {
+					argparts := strings.Split(arg, "=")
+					if len(argparts) == 2 {
+						switch argparts[0] {
+						case "member":
+							g.Members = append(g.Members, argparts[1])
+						}
+					}
+				}
+			} else {
+				b, err := ioutil.ReadAll(cmd.InOrStdin())
+				if err != nil {
+					cmd.PrintErrln(err)
+					os.Exit(1)
+				}
+				err = json.Unmarshal(b, &g)
+				if err != nil {
+					cmd.PrintErrln(err)
+					os.Exit(1)
+				}
 			}
 
-			err = json.Unmarshal(b, &g)
-			if err != nil {
-				cmd.PrintErrln(err)
-				os.Exit(1)
-			}
-
-			err = groupDriver.Create(group.NewGroup(g.ID, g.Members...))
+			err := groupDriver.Create(group.NewGroup(g.ID, g.Members...))
 			if err != nil {
 				cmd.PrintErrln(err)
 				os.Exit(1)
