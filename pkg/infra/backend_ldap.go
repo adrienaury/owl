@@ -91,7 +91,7 @@ func (b BackendLDAP) ListUnits() (unit.List, error) {
 			ldap.NeverDerefAliases,
 			0, 0, false,
 			"(objectClass=organizationalUnit)",
-			[]string{"ou"},
+			[]string{"ou", "description"},
 			nil,
 		),
 	)
@@ -103,6 +103,7 @@ func (b BackendLDAP) ListUnits() (unit.List, error) {
 	for idx, entry := range sr.Entries {
 		units[idx] = unit.NewUnit(
 			entry.GetAttributeValue("ou"),
+			entry.GetAttributeValue("description"),
 		)
 	}
 
@@ -133,7 +134,7 @@ func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
 			ldap.NeverDerefAliases,
 			0, 0, false,
 			"(ou="+id+")",
-			[]string{"ou"},
+			[]string{"ou", "description"},
 			nil,
 		),
 	)
@@ -153,6 +154,7 @@ func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
 
 	return unit.NewUnit(
 		entry.GetAttributeValue("ou"),
+		entry.GetAttributeValue("description"),
 	), nil
 }
 
@@ -178,6 +180,7 @@ func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 	addRequest := ldap.NewAddRequest(dn, []ldap.Control{})
 	addRequest.Attribute("objectClass", []string{"organizationalUnit"})
 	addRequest.Attribute("ou", []string{u.ID()})
+	addRequest.Attribute("description", []string{u.Description()})
 
 	err = conn.Add(addRequest)
 	if err != nil {
@@ -226,10 +229,22 @@ func (b BackendLDAP) DeleteUnit(id string) error {
 		return fmt.Errorf("invalid credentials")
 	}
 
+	dnUsers := "ou=users,ou=" + id + "," + b.baseDN
+	delRequest := ldap.NewDelRequest(dnUsers, []ldap.Control{})
+	err = conn.Del(delRequest)
+	if err != nil {
+		return err
+	}
+
+	dnGroups := "ou=groups,ou=" + id + "," + b.baseDN
+	delRequest = ldap.NewDelRequest(dnGroups, []ldap.Control{})
+	err = conn.Del(delRequest)
+	if err != nil {
+		return err
+	}
+
 	dn := "ou=" + id + "," + b.baseDN
-
-	delRequest := ldap.NewDelRequest(dn, []ldap.Control{})
-
+	delRequest = ldap.NewDelRequest(dn, []ldap.Control{})
 	err = conn.Del(delRequest)
 	if err != nil {
 		return err

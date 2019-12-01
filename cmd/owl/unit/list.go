@@ -52,9 +52,9 @@ func initListCommand(parentCmd *cobra.Command) {
 				cmd.Println(string(b))
 			case "table":
 				w := tabwriter.NewWriter(cmd.OutOrStderr(), 0, 0, 2, ' ', 0)
-				fmt.Fprintf(w, "%v\n", "ID")
+				fmt.Fprintf(w, "%v\t%v\n", "ID", "Description")
 				for _, unit := range units.All() {
-					fmt.Fprintf(w, "%v\n", unit.ID())
+					fmt.Fprintf(w, "%v\t%v\n", unit.ID(), unit.Description())
 				}
 				w.Flush()
 			default:

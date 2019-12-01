@@ -8,33 +8,43 @@ import (
 // Unit ...
 type Unit interface {
 	ID() string
+	Description() string
 	String() string
 	MarshalJSON() ([]byte, error)
 	MarshalYAML() (interface{}, error)
 }
 
 type unit struct {
-	id string
+	id         string
+	decription string
 }
 
 // NewUnit ...
-func NewUnit(id string) Unit {
+func NewUnit(id, decription string) Unit {
 	return unit{
-		id: id,
+		id:         id,
+		decription: decription,
 	}
 }
 
-func (u unit) ID() string     { return u.id }
-func (u unit) String() string { return fmt.Sprintf("%v", u.ID()) }
+func (u unit) ID() string          { return u.id }
+func (u unit) Description() string { return u.decription }
+func (u unit) String() string      { return fmt.Sprintf("%v", u.ID()) }
 func (u unit) MarshalJSON() ([]byte, error) {
-	b, e := json.Marshal(struct{ ID string }{u.id})
+	b, e := json.Marshal(struct {
+		ID          string
+		Description string
+	}{u.id, u.decription})
 	if e != nil {
 		return nil, e
 	}
 	return b, nil
 }
 func (u unit) MarshalYAML() (interface{}, error) {
-	return struct{ ID string }{u.id}, nil
+	return struct {
+		ID          string
+		Description string
+	}{u.id, u.decription}, nil
 }
 
 // List ...
