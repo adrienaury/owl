@@ -64,14 +64,14 @@ How ?
 
 Create or modify realms with `owl realm set` command.
 
-```shell
+```console
 $ owl realm set dev ldap://dev.my-company.com/dc=example,dc=com cn=admin,dc=example,dc=com
 Set realm 'dev' to 'ldap://dev.my-company.com/dc=example,dc=com'.
 ```
 
 List created realms with `owl realm list` command.
 
-```shell
+```console
 $ owl realm list -o table
 ID    Username                    URL
 dev   cn=admin,dc=example,dc=com  ldap://dev.my-company.com/dc=example,dc=com
@@ -80,7 +80,7 @@ prod  cn=admin,dc=example,dc=com  ldap://prod.my-company.com/dc=example,dc=com
 
 Login into a realm with `owl realm login` command.
 
-```shell
+```console
 $ owl realm login dev
 Password :
 Connected to realm 'dev' as user 'admin'.
@@ -90,14 +90,14 @@ Connected to realm 'dev' as user 'admin'.
 
 Create a new unit with `owl unit create` command.
 
-```shell
+```console
 $ owl unit create <<< '{"ID": "my-unit", "Description": "Test unit"}'
 Created unit 'my-unit' in realm 'dev'.
 ```
 
 List existing units with `owl unit list` command.
 
-```shell
+```console
 $ owl unit list -o table
 ID       Description
 my-unit  Test unit
@@ -105,7 +105,7 @@ my-unit  Test unit
 
 To create users and groups, you first need to select a unit with `owl unit use` command.
 
-```shell
+```console
 $ owl unit use my-unit
 Using unit 'my-unit' for next commands.
 ```
@@ -114,14 +114,14 @@ Using unit 'my-unit' for next commands.
 
 To create a user, use `owl user create` command.
 
-```shell
+```console
 $ owl user create <<< '{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"]}'
 Created user 'batman' in unit 'my-unit' of realm 'dev'.
 ```
 
 You can also create or replace an existing user with `owl user apply` command.
 
-```shell
+```console
 $ owl user apply <<< '{"ID": "batman", "Emails": ["bruce.wayne@gotham.dc"]}'
 Modified user 'batman' in unit 'my-unit' of realm 'dev'.
 
@@ -131,14 +131,14 @@ Created user 'joker' in unit 'my-unit' of realm 'dev'.
 
 To only add a single attribute, use `owl user append` command.
 
-```shell
+```console
 $ owl user append joker firstname="Jack"
 Modifier user 'joker' in unit 'my-unit' of realm 'dev'.
 ```
 
 List user with `owl user list` command.
 
-```shell
+```console
 $ owl user list -o table
 ID      First Names   Last Names  E-mails
 batman  Bruce         Wayne       bruce.wayne@gotham.dc
@@ -149,14 +149,14 @@ joker   Arthur, Jack  Flake       arthur.flake@gotham.dc
 
 You guessed it, use `owl group create` command to create a group.
 
-```shell
+```console
 $ owl group create bad-guys member=joker member=batman
 Created group 'bad-guys' in unit 'my-unit' of realm 'dev'.
 ```
 
 Member list can be modified withe `owl group member` sub-commands.
 
-```shell
+```console
 $ owl group member remove bad-guys batman
 Modified group 'bad-guys' in unit 'my-unit' of realm 'dev'.
 
@@ -168,14 +168,14 @@ Modified group 'good-guys' in unit 'my-unit' of realm 'dev'.
 
 All commands can output results in JSON or YAML format, thanks to the `--output` (short `-o`) flag.
 
-```shell
+```console
 $ owl user list -o json
 {"Users": [{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"], "Emails": ["bruce.wayne@gotham.dc"]}, {"ID": "joker", "FirstNames": ["Arthur", "Jack"], "LastNames": ["Flake"], "Emails": ["arthur.flake@gotham.dc"]}]}
 ```
 
 This universal interface enable the use of other programs, for example `jq`.
 
-```shell
+```console
 $ owl user list -o json | jq
 {
     "Users": [
@@ -216,7 +216,7 @@ $ owl user ls -o json | jq ".Users | [.[].ID]"
 
 Owl also understand JSON if passed throught stdin.
 
-```shell
+```console
 $ owl user list -o json | owl import --realm=prod --unit=organization
 Imported 2 users in unit 'organization' of realm 'prod'.
 ```
