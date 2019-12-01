@@ -9,8 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned for 0.1.0 "MVP"
 
-- Ability to create, delete and list realms with JSON input and output
-- Ability to create, delete and list units with JSON input and output
-- Ability to create, delete and list users with JSON input and output
-- Ability to create, delete and list groups with JSON input and output
+- Create, delete and list realms
+- Create, delete and list units
+- Create, delete and list users
+- Create, delete and list groups
+- Set user password, available hash formats : MD5, SMD5, SHA, SSHA, SHA256, SSHA256, SHA384, SSHA384, SHA512, SSHA512
 - LDAP backend connector
+- JSON, YAML, Table outputs
+- JSON input
