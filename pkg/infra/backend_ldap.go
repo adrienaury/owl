@@ -256,7 +256,6 @@ func (b BackendLDAP) ListUsers() (user.List, error) {
 			entry.GetAttributeValues("givenName"),
 			entry.GetAttributeValues("sn"),
 			entry.GetAttributeValues("mail"),
-			[]string{},
 		)
 	}
 

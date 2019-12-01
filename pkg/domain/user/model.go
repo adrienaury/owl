@@ -11,7 +11,6 @@ type User interface {
 	FirstNames() []string
 	LastNames() []string
 	Emails() []string
-	Groups() []string
 	String() string
 	MarshalJSON() ([]byte, error)
 	MarshalYAML() (interface{}, error)
@@ -22,17 +21,15 @@ type user struct {
 	firstNames []string
 	lastNames  []string
 	emails     []string
-	groups     []string
 }
 
 // NewUser ...
-func NewUser(id string, firstNames []string, lastNames []string, emails []string, groups []string) User {
+func NewUser(id string, firstNames []string, lastNames []string, emails []string) User {
 	return user{
 		id:         id,
 		firstNames: firstNames,
 		lastNames:  lastNames,
 		emails:     emails,
-		groups:     groups,
 	}
 }
 
@@ -40,9 +37,8 @@ func (u user) ID() string           { return u.id }
 func (u user) FirstNames() []string { return u.firstNames }
 func (u user) LastNames() []string  { return u.lastNames }
 func (u user) Emails() []string     { return u.emails }
-func (u user) Groups() []string     { return u.groups }
 func (u user) String() string {
-	return fmt.Sprintf("%v %v %v %v %v", u.ID(), u.FirstNames(), u.LastNames(), u.Emails(), u.Groups())
+	return fmt.Sprintf("%v %v %v %v", u.ID(), u.FirstNames(), u.LastNames(), u.Emails())
 }
 func (u user) MarshalJSON() ([]byte, error) {
 	b, e := json.Marshal(struct {
@@ -50,13 +46,11 @@ func (u user) MarshalJSON() ([]byte, error) {
 		FirstNames []string
 		LastNames  []string
 		Emails     []string
-		Groups     []string
 	}{
 		u.id,
 		u.firstNames,
 		u.lastNames,
 		u.emails,
-		u.groups,
 	})
 	if e != nil {
 		return nil, e
@@ -69,13 +63,11 @@ func (u user) MarshalYAML() (interface{}, error) {
 		FirstNames []string
 		LastNames  []string
 		Emails     []string
-		Groups     []string
 	}{
 		u.id,
 		u.firstNames,
 		u.lastNames,
 		u.emails,
-		u.groups,
 	}, nil
 }
 

@@ -26,7 +26,6 @@ func initCreateCommand(parentCmd *cobra.Command) {
 				FirstNames []string
 				LastNames  []string
 				Emails     []string
-				Groups     []string
 			}{}
 
 			b, err := ioutil.ReadAll(cmd.InOrStdin())
@@ -41,7 +40,7 @@ func initCreateCommand(parentCmd *cobra.Command) {
 				os.Exit(1)
 			}
 
-			err = userDriver.Create(user.NewUser(u.ID, u.FirstNames, u.LastNames, u.Emails, u.Groups))
+			err = userDriver.Create(user.NewUser(u.ID, u.FirstNames, u.LastNames, u.Emails))
 			if err != nil {
 				cmd.PrintErrln(err)
 				os.Exit(1)
