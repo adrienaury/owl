@@ -87,7 +87,7 @@ func (b BackendLDAP) ListUnits() (unit.List, error) {
 	sr, err := conn.Search(
 		ldap.NewSearchRequest(
 			b.baseDN,
-			ldap.ScopeWholeSubtree,
+			ldap.ScopeSingleLevel,
 			ldap.NeverDerefAliases,
 			0, 0, false,
 			"(objectClass=organizationalUnit)",
@@ -129,7 +129,7 @@ func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
 	sr, err := conn.Search(
 		ldap.NewSearchRequest(
 			b.baseDN,
-			ldap.ScopeWholeSubtree,
+			ldap.ScopeSingleLevel,
 			ldap.NeverDerefAliases,
 			0, 0, false,
 			"(ou="+id+")",
@@ -260,7 +260,7 @@ func (b BackendLDAP) ListUsers() (user.List, error) {
 	sr, err := conn.Search(
 		ldap.NewSearchRequest(
 			dn,
-			ldap.ScopeWholeSubtree,
+			ldap.ScopeSingleLevel,
 			ldap.NeverDerefAliases,
 			0, 0, false,
 			"(objectClass=inetOrgPerson)",
@@ -388,7 +388,7 @@ func (b BackendLDAP) ListGroups() (group.List, error) {
 	sr, err := conn.Search(
 		ldap.NewSearchRequest(
 			dn,
-			ldap.ScopeWholeSubtree,
+			ldap.ScopeSingleLevel,
 			ldap.NeverDerefAliases,
 			0, 0, false,
 			"(objectClass=groupOfUniqueNames)",
@@ -439,12 +439,12 @@ func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
 		return nil, fmt.Errorf("invalid credentials")
 	}
 
-	dn := "cn=" + id + ",ou=groups,ou=" + b.unit + "," + b.baseDN
+	dn := "ou=groups,ou=" + b.unit + "," + b.baseDN
 
 	sr, err := conn.Search(
 		ldap.NewSearchRequest(
 			dn,
-			ldap.ScopeWholeSubtree,
+			ldap.ScopeSingleLevel,
 			ldap.NeverDerefAliases,
 			0, 0, false,
 			"(cn="+id+")",
