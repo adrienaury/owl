@@ -383,7 +383,7 @@ func (b BackendLDAP) ListGroups() (group.List, error) {
 		usersInGroup := []string{}
 		for _, user := range entry.GetAttributeValues("uniqueMember") {
 			if strings.HasSuffix(user, dn) {
-				usersInGroup = append(usersInGroup, strings.TrimSuffix(user, ","+dn))
+				usersInGroup = append(usersInGroup, strings.TrimPrefix(strings.TrimSuffix(user, ","+dn), "cn="))
 			}
 		}
 		groups[idx] = group.NewGroup(
@@ -401,7 +401,43 @@ func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
 }
 
 // CreateGroup ...
-func (b BackendLDAP) CreateGroup(group.Group) error {
+func (b BackendLDAP) CreateGroup(g group.Group) error {
+	if b.creds == nil {
+		return fmt.Errorf("no credentials")
+	}
+
+	if strings.TrimSpace(b.unit) == "" {
+		return fmt.Errorf("no unit selected")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return fmt.Errorf("invalid credentials")
+	}
+
+	dn := "cn=" + g.ID() + "," + "ou=" + b.unit + "," + b.baseDN
+
+	members := []string{}
+	for _, member := range g.Members() {
+		members = append(members, "cn="+member+","+"ou="+b.unit+","+b.baseDN)
+	}
+
+	addRequest := ldap.NewAddRequest(dn, []ldap.Control{})
+	addRequest.Attribute("objectClass", []string{"groupOfUniqueNames"})
+	addRequest.Attribute("cn", []string{g.ID()})
+	addRequest.Attribute("uniqueMember", members)
+
+	err = conn.Add(addRequest)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

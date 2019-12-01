@@ -40,6 +40,7 @@ func InitCommand(parentCmd *cobra.Command) {
 	}
 	parentCmd.AddCommand(cmd)
 	initListCommand(cmd)
+	initCreateCommand(cmd)
 }
 
 func initCredentialsAndUnit(cmd *cobra.Command, args []string) {
@@ -84,7 +85,11 @@ func initCredentials(cmd *cobra.Command) {
 
 func initUnit(cmd *cobra.Command) {
 	flagUnit := cmd.Flag("unit")
-	if flagUnit != nil && strings.TrimSpace(flagUnit.Value.String()) != "" {
-		unitDriver.Use(flagUnit.Value.String())
+	if flagUnit == nil || strings.TrimSpace(flagUnit.Value.String()) == "" {
+		cmd.PrintErrf("No unit selected, use '--unit' flag or '%v unit use <unit ID>' command.", cmd.Root().Name())
+		cmd.PrintErrln()
+		os.Exit(1)
 	}
+
+	unitDriver.Use(flagUnit.Value.String())
 }

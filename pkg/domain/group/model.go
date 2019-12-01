@@ -27,21 +27,24 @@ func NewGroup(id string, members ...string) Group {
 	}
 }
 
-func (u group) ID() string        { return u.id }
-func (u group) Members() []string { return u.members }
-func (u group) String() string    { return fmt.Sprintf("%v", u.ID()) }
-func (u group) MarshalJSON() ([]byte, error) {
+func (g group) ID() string        { return g.id }
+func (g group) Members() []string { return g.members }
+func (g group) String() string    { return fmt.Sprintf("%v", g.ID()) }
+func (g group) MarshalJSON() ([]byte, error) {
 	b, e := json.Marshal(struct {
 		ID      string
 		Members []string
-	}{u.id, u.members})
+	}{g.id, g.members})
 	if e != nil {
 		return nil, e
 	}
 	return b, nil
 }
-func (u group) MarshalYAML() (interface{}, error) {
-	return struct{ ID string }{u.id}, nil
+func (g group) MarshalYAML() (interface{}, error) {
+	return struct {
+		ID      string
+		Members []string
+	}{g.id, g.members}, nil
 }
 
 // List ...
