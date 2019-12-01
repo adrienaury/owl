@@ -1,8 +1,12 @@
 # Owl
 
-Owl is a set of tools to manage realms of units, users and groups.
+Owl is a platform agnostic set of tools to manage realms of units, users and groups.
 
 ## Concepts
+
+Owl is very opiniated on how to manage user accounts, but it is also highly customizable.
+
+Only 4 types of object are manipulated.
 
 Each object has a unique identifier and a set of prefefined properties that can be multivalued. Additional properties can be configured.
 
@@ -151,6 +155,14 @@ Imported 2 users in unit 'organization' of realm 'prod'.
 #### Installation
 
 Download the latest version for your OS from the [release page](https://github.com/adrienaury/owl/releases).
+
+### Owl REST Server
+
+TODO
+
+### Owl Web GUI
+
+TODO
 
 ## Contribute
 
