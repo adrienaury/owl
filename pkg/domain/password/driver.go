@@ -28,6 +28,9 @@ func NewDriver(backend Backend, mailService MailService) Driver {
 
 // GetRandomPassword ...
 func (d Driver) GetRandomPassword(domain Domain, length uint) (string, error) {
+	if length == 0 {
+		return "", fmt.Errorf("can't generate a 0-length password")
+	}
 	sb := strings.Builder{}
 	for {
 		n, err := rand.Int(rand.Reader, big.NewInt(int64(domain.Len())))
@@ -41,7 +44,7 @@ func (d Driver) GetRandomPassword(domain Domain, length uint) (string, error) {
 	}
 }
 
-// AssignRandomPassword ... MD5, SMD5, SHA, SSHA, SHA224, SHA224, SHA256, SSHA256, SHA384, SSHA384, SHA512, SSHA512
+// AssignRandomPassword ...
 func (d Driver) AssignRandomPassword(alg string, domain Domain, length uint, userID string) error {
 	password, err := d.GetRandomPassword(domain, length)
 	if err != nil {
