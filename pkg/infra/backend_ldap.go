@@ -390,6 +390,39 @@ func (b BackendLDAP) GetUser(id string) (user.User, error) {
 	), nil
 }
 
+// GetUserEmails ...
+func (b BackendLDAP) GetUserEmails(id string) ([]string, error) {
+	user, err := b.GetUser(id)
+	if err != nil {
+		return nil, err
+	}
+	return user.Emails(), nil
+}
+
+// GetUserFirstName ...
+func (b BackendLDAP) GetUserFirstName(id string) (string, error) {
+	user, err := b.GetUser(id)
+	if err != nil {
+		return "", err
+	}
+	if len(user.FirstNames()) <= 0 {
+		return "", fmt.Errorf("user has no first name")
+	}
+	return user.FirstNames()[0], nil
+}
+
+// GetUserLastName ...
+func (b BackendLDAP) GetUserLastName(id string) (string, error) {
+	user, err := b.GetUser(id)
+	if err != nil {
+		return "", err
+	}
+	if len(user.LastNames()) <= 0 {
+		return "", fmt.Errorf("user has no last name")
+	}
+	return user.LastNames()[0], nil
+}
+
 // CreateUser ...
 func (b BackendLDAP) CreateUser(u user.User) error {
 	if b.creds == nil {
@@ -502,6 +535,40 @@ func (b BackendLDAP) DeleteUser(id string) error {
 	delRequest := ldap.NewDelRequest(dn, []ldap.Control{})
 
 	err = conn.Del(delRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SetUserPassword ...
+func (b BackendLDAP) SetUserPassword(userID string, hashedPassword string) error {
+	if b.creds == nil {
+		return fmt.Errorf("no credentials")
+	}
+
+	if strings.TrimSpace(b.unit) == "" {
+		return fmt.Errorf("no unit selected")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return fmt.Errorf("invalid credentials")
+	}
+
+	dn := "cn=" + userID + ",ou=users,ou=" + b.unit + "," + b.baseDN
+
+	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
+	modRequest.Replace("userPassword", []string{hashedPassword})
+
+	err = conn.Modify(modRequest)
 	if err != nil {
 		return err
 	}

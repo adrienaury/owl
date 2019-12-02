@@ -100,11 +100,12 @@ func initConfig() {
 	realmDriver := newRealmDriver()
 	unitDriver := newUnitDriver(&backend)
 	userDriver := newUserDriver(&backend)
+	passwordDriver := newPasswordDriver(&backend)
 	groupDriver := newGroupDriver(&backend)
 
 	realm.SetDrivers(realmDriver, credentialsDriver)
 	unit.SetDrivers(unitDriver, realmDriver, credentialsDriver)
-	user.SetDrivers(userDriver, unitDriver, realmDriver, credentialsDriver)
+	user.SetDrivers(userDriver, passwordDriver, unitDriver, realmDriver, credentialsDriver)
 	group.SetDrivers(groupDriver, userDriver, unitDriver, realmDriver, credentialsDriver)
 	export.SetDrivers(groupDriver, userDriver, unitDriver, realmDriver, credentialsDriver)
 

@@ -179,6 +179,13 @@ batman  Bruce         Wayne       bruce.wayne@gotham.dc
 joker   Arthur, Jack  Flake       arthur.flake@gotham.dc
 ```
 
+Give user a random password with `owl user new-password` command.
+
+```console
+$ owl user new-password joker
+Assigned new random password to user 'joker' in unit 'my-unit' of realm 'dev'.
+```
+
 ##### Manage groups
 
 You guessed it, use `owl group create` command to create a group.

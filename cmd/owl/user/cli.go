@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/adrienaury/owl/pkg/domain/credentials"
+	"github.com/adrienaury/owl/pkg/domain/password"
 	"github.com/adrienaury/owl/pkg/domain/realm"
 	"github.com/adrienaury/owl/pkg/domain/unit"
 	"github.com/adrienaury/owl/pkg/domain/user"
@@ -14,14 +15,16 @@ import (
 
 var (
 	userDriver        user.Driver
+	passwordDriver    password.Driver
 	unitDriver        unit.Driver
 	realmDriver       realm.Driver
 	credentialsDriver credentials.Driver
 )
 
 // SetDrivers ...
-func SetDrivers(us user.Driver, un unit.Driver, r realm.Driver, c credentials.Driver) {
+func SetDrivers(us user.Driver, pd password.Driver, un unit.Driver, r realm.Driver, c credentials.Driver) {
 	userDriver = us
+	passwordDriver = pd
 	unitDriver = un
 	realmDriver = r
 	credentialsDriver = c
@@ -40,6 +43,7 @@ func InitCommand(parentCmd *cobra.Command) {
 	initCreateCommand(cmd)
 	initApplyCommand(cmd)
 	initDeleteCommand(cmd)
+	initPasswordCommand(cmd)
 }
 
 func initCredentialsAndUnit(cmd *cobra.Command, args []string) {
