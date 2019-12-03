@@ -58,6 +58,7 @@ func (d Driver) AssignPassword(userID string, alg string, password string) error
 
 	values := map[string]string{
 		"password": password,
+		"to":       mail,
 	}
 
 	if err := d.mailService.SendMail(mail, "AssignPassword", values); err != nil {
