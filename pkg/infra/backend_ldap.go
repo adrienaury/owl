@@ -78,21 +78,7 @@ func (b BackendLDAP) ListUnits() (unit.List, error) {
 
 	defer conn.Close()
 
-	if !b.authenticateToServer(b.creds, conn) {
-		return nil, fmt.Errorf("invalid credentials")
-	}
-
-	sr, err := conn.Search(
-		ldap.NewSearchRequest(
-			b.baseDN,
-			ldap.ScopeSingleLevel,
-			ldap.NeverDerefAliases,
-			0, 0, false,
-			"(objectClass=organizationalUnit)",
-			[]string{"ou", "description"},
-			nil,
-		),
-	)
+	sr, err := b.search(conn, b.baseDN, "(objectClass=organizationalUnit)", "ou", "description")
 	if err != nil {
 		return nil, err
 	}
@@ -117,21 +103,7 @@ func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
 
 	defer conn.Close()
 
-	if !b.authenticateToServer(b.creds, conn) {
-		return nil, fmt.Errorf("invalid credentials")
-	}
-
-	sr, err := conn.Search(
-		ldap.NewSearchRequest(
-			b.baseDN,
-			ldap.ScopeSingleLevel,
-			ldap.NeverDerefAliases,
-			0, 0, false,
-			"(ou="+id+")",
-			[]string{"ou", "description"},
-			nil,
-		),
-	)
+	sr, err := b.search(conn, b.baseDN, "(ou="+id+")", "ou", "description")
 	if err != nil {
 		return nil, err
 	}
@@ -278,23 +250,7 @@ func (b BackendLDAP) ListUsers() (user.List, error) {
 
 	defer conn.Close()
 
-	if !b.authenticateToServer(b.creds, conn) {
-		return nil, fmt.Errorf("invalid credentials")
-	}
-
-	dn := "ou=users,ou=" + b.unit + "," + b.baseDN
-
-	sr, err := conn.Search(
-		ldap.NewSearchRequest(
-			dn,
-			ldap.ScopeSingleLevel,
-			ldap.NeverDerefAliases,
-			0, 0, false,
-			"(objectClass=inetOrgPerson)",
-			[]string{"cn", "givenName", "sn", "mail"},
-			nil,
-		),
-	)
+	sr, err := b.search(conn, "ou=users,ou="+b.unit+","+b.baseDN, "(objectClass=inetOrgPerson)", "cn", "givenName", "sn", "mail")
 	if err != nil {
 		return nil, err
 	}
@@ -325,23 +281,7 @@ func (b BackendLDAP) GetUser(id string) (user.User, error) {
 
 	defer conn.Close()
 
-	if !b.authenticateToServer(b.creds, conn) {
-		return nil, fmt.Errorf("invalid credentials")
-	}
-
-	dn := "ou=users,ou=" + b.unit + "," + b.baseDN
-
-	sr, err := conn.Search(
-		ldap.NewSearchRequest(
-			dn,
-			ldap.ScopeSingleLevel,
-			ldap.NeverDerefAliases,
-			0, 0, false,
-			"(cn="+id+")",
-			[]string{"cn", "givenName", "sn", "mail"},
-			nil,
-		),
-	)
+	sr, err := b.search(conn, "ou=users,ou="+b.unit+","+b.baseDN, "(cn="+id+")", "cn", "givenName", "sn", "mail")
 	if err != nil {
 		return nil, err
 	}
@@ -516,23 +456,7 @@ func (b BackendLDAP) VerifyEmail(userID string, secret string) error {
 
 	defer conn.Close()
 
-	if !b.authenticateToServer(b.creds, conn) {
-		return fmt.Errorf("invalid credentials")
-	}
-
-	dn := "ou=users,ou=" + b.unit + "," + b.baseDN
-
-	sr, err := conn.Search(
-		ldap.NewSearchRequest(
-			dn,
-			ldap.ScopeSingleLevel,
-			ldap.NeverDerefAliases,
-			0, 0, false,
-			"(cn="+userID+")",
-			[]string{"labeledURI"},
-			nil,
-		),
-	)
+	sr, err := b.search(conn, "ou=users,ou="+b.unit+","+b.baseDN, "(cn="+userID+")", "labeledURI")
 	if err != nil {
 		return err
 	}
@@ -621,23 +545,7 @@ func (b BackendLDAP) ListGroups() (group.List, error) {
 
 	defer conn.Close()
 
-	if !b.authenticateToServer(b.creds, conn) {
-		return nil, fmt.Errorf("invalid credentials")
-	}
-
-	dn := "ou=groups,ou=" + b.unit + "," + b.baseDN
-
-	sr, err := conn.Search(
-		ldap.NewSearchRequest(
-			dn,
-			ldap.ScopeSingleLevel,
-			ldap.NeverDerefAliases,
-			0, 0, false,
-			"(objectClass=groupOfUniqueNames)",
-			[]string{"cn", "uniqueMember"},
-			nil,
-		),
-	)
+	sr, err := b.search(conn, "ou=groups,ou="+b.unit+","+b.baseDN, "(objectClass=groupOfUniqueNames)", "cn", "uniqueMember")
 	if err != nil {
 		return nil, err
 	}
@@ -673,23 +581,7 @@ func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
 
 	defer conn.Close()
 
-	if !b.authenticateToServer(b.creds, conn) {
-		return nil, fmt.Errorf("invalid credentials")
-	}
-
-	dn := "ou=groups,ou=" + b.unit + "," + b.baseDN
-
-	sr, err := conn.Search(
-		ldap.NewSearchRequest(
-			dn,
-			ldap.ScopeSingleLevel,
-			ldap.NeverDerefAliases,
-			0, 0, false,
-			"(cn="+id+")",
-			[]string{"cn", "uniqueMember"},
-			nil,
-		),
-	)
+	sr, err := b.search(conn, "ou=groups,ou="+b.unit+","+b.baseDN, "(cn="+id+")", "cn", "uniqueMember")
 	if err != nil {
 		return nil, err
 	}
@@ -853,6 +745,29 @@ func (b BackendLDAP) RemoveFromGroup(id string, memberIDs ...string) error {
 	}
 
 	return nil
+}
+
+func (b BackendLDAP) search(conn *ldap.Conn, dn string, filter string, attributes ...string) (*ldap.SearchResult, error) {
+	if !b.authenticateToServer(b.creds, conn) {
+		return nil, fmt.Errorf("invalid credentials")
+	}
+
+	sr, err := conn.Search(
+		ldap.NewSearchRequest(
+			dn,
+			ldap.ScopeSingleLevel,
+			ldap.NeverDerefAliases,
+			0, 0, false,
+			filter,
+			attributes,
+			nil,
+		),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return sr, nil
 }
 
 func (b BackendLDAP) initConnection() (*ldap.Conn, error) {
