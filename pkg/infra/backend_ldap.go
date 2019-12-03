@@ -496,7 +496,7 @@ func (b BackendLDAP) GetVerifiedEmail(userID string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if len(user.Emails()) <= 0 {
+	if len(user.Emails()) == 0 {
 		return "", fmt.Errorf("user has no verified e-mail")
 	}
 	return user.Emails()[0], nil
@@ -794,10 +794,5 @@ func (b BackendLDAP) dialToServer(c credentials.Credentials) (*ldap.Conn, error)
 
 // authenticateToServer takes the provided credentials try to bind to make sure they are correct.
 func (b BackendLDAP) authenticateToServer(c credentials.Credentials, conn *ldap.Conn) bool {
-	err := conn.Bind(c.Username(), c.Password())
-	if err != nil {
-		return false
-	}
-
-	return true
+	return conn.Bind(c.Username(), c.Password()) == nil
 }

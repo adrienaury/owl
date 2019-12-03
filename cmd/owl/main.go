@@ -54,7 +54,7 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	defer globalSession.Dump()
+	defer func() { _ = globalSession.Dump() }()
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -106,7 +106,7 @@ func initConfig() {
 	realm.SetDrivers(realmDriver, credentialsDriver)
 	unit.SetDrivers(unitDriver, realmDriver, credentialsDriver)
 	user.SetDrivers(userDriver, passwordDriver, unitDriver, realmDriver, credentialsDriver)
-	group.SetDrivers(groupDriver, userDriver, unitDriver, realmDriver, credentialsDriver)
+	group.SetDrivers(groupDriver, unitDriver, realmDriver, credentialsDriver)
 	export.SetDrivers(groupDriver, userDriver, unitDriver, realmDriver, credentialsDriver)
 
 	realm.SetSession(globalSession)

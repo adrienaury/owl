@@ -9,22 +9,19 @@ import (
 	"github.com/adrienaury/owl/pkg/domain/group"
 	"github.com/adrienaury/owl/pkg/domain/realm"
 	"github.com/adrienaury/owl/pkg/domain/unit"
-	"github.com/adrienaury/owl/pkg/domain/user"
 	"github.com/spf13/cobra"
 )
 
 var (
 	groupDriver       group.Driver
-	userDriver        user.Driver
 	unitDriver        unit.Driver
 	realmDriver       realm.Driver
 	credentialsDriver credentials.Driver
 )
 
 // SetDrivers ...
-func SetDrivers(gd group.Driver, us user.Driver, un unit.Driver, r realm.Driver, c credentials.Driver) {
+func SetDrivers(gd group.Driver, un unit.Driver, r realm.Driver, c credentials.Driver) {
 	groupDriver = gd
-	userDriver = us
 	unitDriver = un
 	realmDriver = r
 	credentialsDriver = c

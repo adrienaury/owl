@@ -31,11 +31,8 @@ func initCreateCommand(parentCmd *cobra.Command) {
 				g.ID = args[0]
 				for _, arg := range args[1:] {
 					argparts := strings.Split(arg, "=")
-					if len(argparts) == 2 {
-						switch argparts[0] {
-						case "member":
-							g.Members = append(g.Members, argparts[1])
-						}
+					if len(argparts) == 2 && argparts[0] == "member" {
+						g.Members = append(g.Members, argparts[1])
 					}
 				}
 			} else {

@@ -1,9 +1,7 @@
 package password
 
 import (
-	"crypto/md5"
 	"crypto/rand"
-	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/base64"
@@ -90,14 +88,15 @@ func (d Driver) GetRandomPassword(domain Domain, length uint) (string, error) {
 func (d Driver) GetHash(alg string, password string) (string, error) {
 	var hash []byte
 	switch alg {
-	case "MD5":
-		hash = makehash(md5.New(), password, false)
-	case "SMD5":
-		hash = makehash(md5.New(), password, true)
-	case "SHA", "SHA1":
-		hash = makehash(sha1.New(), password, false)
-	case "SSHA", "SSHA1":
-		hash = makehash(sha1.New(), password, true)
+	/* Weak cryptographic primitive blacklisted
+	    case "MD5":
+			hash = makehash(md5.New(), password, false)
+		case "SMD5":
+			hash = makehash(md5.New(), password, true)
+		case "SHA", "SHA1":
+			hash = makehash(sha1.New(), password, false)
+		case "SSHA", "SSHA1":
+			hash = makehash(sha1.New(), password, true) */
 	case "SHA224":
 		hash = makehash(sha256.New224(), password, false)
 	case "SSHA224":
@@ -142,10 +141,10 @@ func (d Driver) GetHash(alg string, password string) (string, error) {
 
 // makehash make a hash of the passphrase with the specified secure hash algorithm
 func makehash(alg hash.Hash, password string, salted bool) []byte {
-	alg.Write([]byte(password))
+	_, _ = alg.Write([]byte(password))
 	if salted {
 		salt := makeSalt()
-		alg.Write(salt)
+		_, _ = alg.Write(salt)
 		h := alg.Sum(nil)
 		return append(h, salt...)
 	}
@@ -155,6 +154,9 @@ func makehash(alg hash.Hash, password string, salted bool) []byte {
 // makeSalt make a 4 byte array containing random bytes.
 func makeSalt() []byte {
 	sbytes := make([]byte, 4)
-	rand.Read(sbytes)
+	_, err := rand.Read(sbytes)
+	if err != nil {
+		panic(err)
+	}
 	return sbytes
 }
