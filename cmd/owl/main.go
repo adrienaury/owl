@@ -100,7 +100,7 @@ func initConfig() {
 	realmDriver := newRealmDriver()
 	unitDriver := newUnitDriver(&backend)
 	userDriver := newUserDriver(&backend)
-	passwordDriver := newPasswordDriver()
+	passwordDriver := newPasswordDriver(&backend)
 	groupDriver := newGroupDriver(&backend)
 
 	realm.SetDrivers(realmDriver, credentialsDriver)

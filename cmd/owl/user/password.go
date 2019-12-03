@@ -49,24 +49,11 @@ func initPasswordCommand(parentCmd *cobra.Command) {
 				domain = password.NewDomain(flagCharDomain)
 			}
 
-			password, err := passwordDriver.GetRandomPassword(domain, flagLength)
+			err := passwordDriver.AssignRandomPassword(id, flagHashAlgorithm, domain, flagLength)
 			if err != nil {
 				cmd.PrintErrln(err)
 				os.Exit(1)
 			}
-
-			hash, err := passwordDriver.GetHash(flagHashAlgorithm, password)
-			if err != nil {
-				cmd.PrintErrln(err)
-				os.Exit(1)
-			}
-
-			if err := userDriver.AssignPassword(id, hash); err != nil {
-				cmd.PrintErrln(err)
-				os.Exit(1)
-			}
-
-			fmt.Println(password, hash)
 
 			flagUnit := cmd.Flag("unit")
 			flagRealm := cmd.Flag("realm")

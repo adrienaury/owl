@@ -13,6 +13,6 @@ func NewMailService() MailService {
 
 // SendMail ...
 func (ms MailService) SendMail(email string, templateID string, values map[string]string) error {
-	fmt.Println(values)
+	fmt.Println("Mail sent", templateID, values)
 	return nil
 }

@@ -9,6 +9,6 @@ func newMailService() domain.MailService {
 	return infra.NewMailService()
 }
 
-func newPasswordDriver() domain.Driver {
-	return domain.NewDriver(newMailService())
+func newPasswordDriver(backend domain.Backend) domain.Driver {
+	return domain.NewDriver(backend, newMailService())
 }

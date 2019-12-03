@@ -17,12 +17,54 @@ import (
 
 // Driver ...
 type Driver struct {
+	backend     Backend
 	mailService MailService
 }
 
 // NewDriver ...
-func NewDriver(mailService MailService) Driver {
-	return Driver{mailService}
+func NewDriver(backend Backend, mailService MailService) Driver {
+	return Driver{backend, mailService}
+}
+
+// AssignRandomPassword ...
+func (d Driver) AssignRandomPassword(userID string, alg string, domain Domain, length uint) error {
+	password, err := d.GetRandomPassword(domain, length)
+	if err != nil {
+		return err
+	}
+
+	if err := d.AssignPassword(userID, alg, password); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AssignPassword ...
+func (d Driver) AssignPassword(userID string, alg string, password string) error {
+	mail, err := d.backend.GetVerifiedEmail(userID)
+	if err != nil {
+		return err
+	}
+
+	hash, err := d.GetHash(alg, password)
+	if err != nil {
+		return err
+	}
+
+	if err := d.backend.SetUserPassword(userID, hash); err != nil {
+		return err
+	}
+
+	values := map[string]string{
+		"password": password,
+	}
+
+	if err := d.mailService.SendMail(mail, "AssignPassword", values); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // GetRandomPassword ...
