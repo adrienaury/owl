@@ -216,21 +216,21 @@ func (b BackendLDAP) DeleteUnit(id string) error {
 	dnUsers := "ou=users,ou=" + id + "," + b.baseDN
 	delRequest := ldap.NewDelRequest(dnUsers, []ldap.Control{})
 	err = conn.Del(delRequest)
-	if err != nil {
+	if err != nil && !ldap.IsErrorWithCode(err, 32) {
 		return err
 	}
 
 	dnGroups := "ou=groups,ou=" + id + "," + b.baseDN
 	delRequest = ldap.NewDelRequest(dnGroups, []ldap.Control{})
 	err = conn.Del(delRequest)
-	if err != nil {
+	if err != nil && !ldap.IsErrorWithCode(err, 32) {
 		return err
 	}
 
 	dn := "ou=" + id + "," + b.baseDN
 	delRequest = ldap.NewDelRequest(dn, []ldap.Control{})
 	err = conn.Del(delRequest)
-	if err != nil {
+	if err != nil && !ldap.IsErrorWithCode(err, 32) {
 		return err
 	}
 
@@ -404,7 +404,7 @@ func (b BackendLDAP) DeleteUser(id string) error {
 	delRequest := ldap.NewDelRequest(dn, []ldap.Control{})
 
 	err = conn.Del(delRequest)
-	if err != nil {
+	if err != nil && !ldap.IsErrorWithCode(err, 32) {
 		return err
 	}
 
@@ -670,7 +670,7 @@ func (b BackendLDAP) DeleteGroup(id string) error {
 	delRequest := ldap.NewDelRequest(dn, []ldap.Control{})
 
 	err = conn.Del(delRequest)
-	if err != nil {
+	if err != nil && !ldap.IsErrorWithCode(err, 32) {
 		return err
 	}
 

@@ -42,6 +42,9 @@ func initCreateCommand(parentCmd *cobra.Command) {
 							u.LastNames = append(u.LastNames, argparts[1])
 						case "email":
 							u.Emails = append(u.Emails, argparts[1])
+						default:
+							cmd.PrintErrln("Invalid attribute:", argparts[0])
+							os.Exit(1)
 						}
 					}
 				}

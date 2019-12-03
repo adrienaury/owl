@@ -31,8 +31,13 @@ func initCreateCommand(parentCmd *cobra.Command) {
 				g.ID = args[0]
 				for _, arg := range args[1:] {
 					argparts := strings.Split(arg, "=")
-					if len(argparts) == 2 && argparts[0] == "member" {
-						g.Members = append(g.Members, argparts[1])
+					if len(argparts) == 2 {
+						if argparts[0] == "member" {
+							g.Members = append(g.Members, argparts[1])
+						} else {
+							cmd.PrintErrln("Invalid attribute:", argparts[0])
+							os.Exit(1)
+						}
 					}
 				}
 			} else {
