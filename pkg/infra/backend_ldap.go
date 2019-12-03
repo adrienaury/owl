@@ -71,11 +71,7 @@ func (b BackendLDAP) TestCredentials(c credentials.Credentials) (bool, error) {
 
 // ListUnits ...
 func (b BackendLDAP) ListUnits() (unit.List, error) {
-	if b.creds == nil {
-		return nil, fmt.Errorf("no credentials")
-	}
-
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return nil, err
 	}
@@ -114,11 +110,7 @@ func (b BackendLDAP) ListUnits() (unit.List, error) {
 
 // GetUnit ...
 func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
-	if b.creds == nil {
-		return nil, fmt.Errorf("no credentials")
-	}
-
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return nil, err
 	}
@@ -162,11 +154,7 @@ func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
 
 // CreateUnit ...
 func (b BackendLDAP) CreateUnit(u unit.Unit) error {
-	if b.creds == nil {
-		return fmt.Errorf("no credentials")
-	}
-
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return err
 	}
@@ -216,11 +204,7 @@ func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 
 // UpdateUnit ...
 func (b BackendLDAP) UpdateUnit(u unit.Unit) error {
-	if b.creds == nil {
-		return fmt.Errorf("no credentials")
-	}
-
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return err
 	}
@@ -246,11 +230,7 @@ func (b BackendLDAP) UpdateUnit(u unit.Unit) error {
 
 // DeleteUnit ...
 func (b BackendLDAP) DeleteUnit(id string) error {
-	if b.creds == nil {
-		return fmt.Errorf("no credentials")
-	}
-
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return err
 	}
@@ -287,15 +267,11 @@ func (b BackendLDAP) DeleteUnit(id string) error {
 
 // ListUsers ...
 func (b BackendLDAP) ListUsers() (user.List, error) {
-	if b.creds == nil {
-		return nil, fmt.Errorf("no credentials")
-	}
-
 	if strings.TrimSpace(b.unit) == "" {
 		return nil, fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return nil, err
 	}
@@ -338,15 +314,11 @@ func (b BackendLDAP) ListUsers() (user.List, error) {
 
 // GetUser ..
 func (b BackendLDAP) GetUser(id string) (user.User, error) {
-	if b.creds == nil {
-		return nil, fmt.Errorf("no credentials")
-	}
-
 	if strings.TrimSpace(b.unit) == "" {
 		return nil, fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return nil, err
 	}
@@ -394,15 +366,11 @@ func (b BackendLDAP) GetUser(id string) (user.User, error) {
 
 // CreateUser ...
 func (b BackendLDAP) CreateUser(u user.User) error {
-	if b.creds == nil {
-		return fmt.Errorf("no credentials")
-	}
-
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return err
 	}
@@ -438,15 +406,11 @@ func (b BackendLDAP) CreateUser(u user.User) error {
 
 // UpdateUser ...
 func (b BackendLDAP) UpdateUser(u user.User) error {
-	if b.creds == nil {
-		return fmt.Errorf("no credentials")
-	}
-
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return err
 	}
@@ -480,15 +444,11 @@ func (b BackendLDAP) UpdateUser(u user.User) error {
 
 // DeleteUser ...
 func (b BackendLDAP) DeleteUser(id string) error {
-	if b.creds == nil {
-		return fmt.Errorf("no credentials")
-	}
-
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return err
 	}
@@ -513,15 +473,11 @@ func (b BackendLDAP) DeleteUser(id string) error {
 
 // SetEmailVerificationURI : TODO
 func (b BackendLDAP) SetEmailVerificationURI(userID string, secret string, expire int64) error {
-	if b.creds == nil {
-		return fmt.Errorf("no credentials")
-	}
-
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return err
 	}
@@ -549,15 +505,11 @@ func (b BackendLDAP) SetEmailVerificationURI(userID string, secret string, expir
 
 // VerifyEmail : TODO
 func (b BackendLDAP) VerifyEmail(userID string, secret string) error {
-	if b.creds == nil {
-		return fmt.Errorf("no credentials")
-	}
-
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return err
 	}
@@ -628,15 +580,11 @@ func (b BackendLDAP) GetVerifiedEmail(userID string) (string, error) {
 
 // SetUserPassword ...
 func (b BackendLDAP) SetUserPassword(userID string, hashedPassword string) error {
-	if b.creds == nil {
-		return fmt.Errorf("no credentials")
-	}
-
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return err
 	}
@@ -662,15 +610,11 @@ func (b BackendLDAP) SetUserPassword(userID string, hashedPassword string) error
 
 // ListGroups ...
 func (b BackendLDAP) ListGroups() (group.List, error) {
-	if b.creds == nil {
-		return nil, fmt.Errorf("no credentials")
-	}
-
 	if strings.TrimSpace(b.unit) == "" {
 		return nil, fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return nil, err
 	}
@@ -718,15 +662,11 @@ func (b BackendLDAP) ListGroups() (group.List, error) {
 
 // GetGroup ...
 func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
-	if b.creds == nil {
-		return nil, fmt.Errorf("no credentials")
-	}
-
 	if strings.TrimSpace(b.unit) == "" {
 		return nil, fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return nil, err
 	}
@@ -781,15 +721,11 @@ func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
 
 // CreateGroup ...
 func (b BackendLDAP) CreateGroup(g group.Group) error {
-	if b.creds == nil {
-		return fmt.Errorf("no credentials")
-	}
-
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return err
 	}
@@ -822,15 +758,11 @@ func (b BackendLDAP) CreateGroup(g group.Group) error {
 
 // DeleteGroup ...
 func (b BackendLDAP) DeleteGroup(id string) error {
-	if b.creds == nil {
-		return fmt.Errorf("no credentials")
-	}
-
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return err
 	}
@@ -855,15 +787,11 @@ func (b BackendLDAP) DeleteGroup(id string) error {
 
 // AddToGroup ...
 func (b BackendLDAP) AddToGroup(id string, memberIDs ...string) error {
-	if b.creds == nil {
-		return fmt.Errorf("no credentials")
-	}
-
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return err
 	}
@@ -894,15 +822,11 @@ func (b BackendLDAP) AddToGroup(id string, memberIDs ...string) error {
 
 // RemoveFromGroup ...
 func (b BackendLDAP) RemoveFromGroup(id string, memberIDs ...string) error {
-	if b.creds == nil {
-		return fmt.Errorf("no credentials")
-	}
-
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.initConnection()
 	if err != nil {
 		return err
 	}
@@ -929,6 +853,19 @@ func (b BackendLDAP) RemoveFromGroup(id string, memberIDs ...string) error {
 	}
 
 	return nil
+}
+
+func (b BackendLDAP) initConnection() (*ldap.Conn, error) {
+	if b.creds == nil {
+		return nil, fmt.Errorf("no credentials")
+	}
+
+	conn, err := b.dialToServer(b.creds)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
 }
 
 // dialToServer takes the Server URL and dials to make sure the server is reachable.
