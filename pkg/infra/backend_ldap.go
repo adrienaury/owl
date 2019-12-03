@@ -648,6 +648,43 @@ func (b BackendLDAP) CreateGroup(g group.Group) error {
 	return nil
 }
 
+// UpdateGroup ...
+func (b BackendLDAP) UpdateGroup(g group.Group) error {
+	if strings.TrimSpace(b.unit) == "" {
+		return fmt.Errorf("no unit selected")
+	}
+
+	conn, err := b.initConnection()
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+	if !b.authenticateToServer(b.creds, conn) {
+		return fmt.Errorf("invalid credentials")
+	}
+
+	dn := "cn=" + g.ID() + ",ou=groups,ou=" + b.unit + "," + b.baseDN
+
+	members := []string{}
+	for _, member := range g.Members() {
+		members = append(members, "cn="+member+",ou=users,ou="+b.unit+","+b.baseDN)
+	}
+
+	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
+	if len(g.Members()) > 0 {
+		modRequest.Replace("uniqueMember", members)
+	}
+
+	err = conn.Modify(modRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DeleteGroup ...
 func (b BackendLDAP) DeleteGroup(id string) error {
 	if strings.TrimSpace(b.unit) == "" {

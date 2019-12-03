@@ -29,12 +29,34 @@ func (d Driver) Get(id string) (Group, error) {
 }
 
 // Create ...
-func (d Driver) Create(u Group) error {
-	err := d.backend.CreateGroup(u)
+func (d Driver) Create(g Group) error {
+	err := d.backend.CreateGroup(g)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+// Apply ...
+func (d Driver) Apply(g Group) (bool, error) {
+	group, err := d.backend.GetGroup(g.ID())
+	if err != nil {
+		return false, err
+	}
+
+	exists := false
+	if group != nil {
+		exists = true
+		err = d.backend.UpdateGroup(g)
+	} else {
+		err = d.backend.CreateGroup(g)
+	}
+
+	if err != nil {
+		return exists, err
+	}
+
+	return exists, nil
 }
 
 // Delete ...

@@ -8,6 +8,7 @@ import (
 
 	"github.com/adrienaury/owl/cmd/owl/export"
 	"github.com/adrienaury/owl/cmd/owl/group"
+	"github.com/adrienaury/owl/cmd/owl/imprt"
 	"github.com/adrienaury/owl/cmd/owl/realm"
 	"github.com/adrienaury/owl/cmd/owl/session"
 	"github.com/adrienaury/owl/cmd/owl/unit"
@@ -84,6 +85,7 @@ func init() {
 	user.InitCommand(rootCmd)
 	group.InitCommand(rootCmd)
 	export.InitCommand(rootCmd)
+	imprt.InitCommand(rootCmd)
 }
 
 func initConfig() {
@@ -108,6 +110,7 @@ func initConfig() {
 	user.SetDrivers(userDriver, passwordDriver, unitDriver, realmDriver, credentialsDriver)
 	group.SetDrivers(groupDriver, unitDriver, realmDriver, credentialsDriver)
 	export.SetDrivers(groupDriver, userDriver, unitDriver, realmDriver, credentialsDriver)
+	imprt.SetDrivers(groupDriver, userDriver, unitDriver, realmDriver, credentialsDriver)
 
 	realm.SetSession(globalSession)
 	unit.SetSession(globalSession)
