@@ -390,39 +390,6 @@ func (b BackendLDAP) GetUser(id string) (user.User, error) {
 	), nil
 }
 
-// GetUserEmails ...
-func (b BackendLDAP) GetUserEmails(id string) ([]string, error) {
-	user, err := b.GetUser(id)
-	if err != nil {
-		return nil, err
-	}
-	return user.Emails(), nil
-}
-
-// GetUserFirstName ...
-func (b BackendLDAP) GetUserFirstName(id string) (string, error) {
-	user, err := b.GetUser(id)
-	if err != nil {
-		return "", err
-	}
-	if len(user.FirstNames()) <= 0 {
-		return "", fmt.Errorf("user has no first name")
-	}
-	return user.FirstNames()[0], nil
-}
-
-// GetUserLastName ...
-func (b BackendLDAP) GetUserLastName(id string) (string, error) {
-	user, err := b.GetUser(id)
-	if err != nil {
-		return "", err
-	}
-	if len(user.LastNames()) <= 0 {
-		return "", fmt.Errorf("user has no last name")
-	}
-	return user.LastNames()[0], nil
-}
-
 // CreateUser ...
 func (b BackendLDAP) CreateUser(u user.User) error {
 	if b.creds == nil {

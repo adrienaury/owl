@@ -7,4 +7,5 @@ type Backend interface {
 	CreateUser(User) error
 	UpdateUser(User) error
 	DeleteUser(id string) error
+	SetUserPassword(userID string, hashedPassword string) error
 }

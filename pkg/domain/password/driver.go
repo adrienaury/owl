@@ -17,13 +17,12 @@ import (
 
 // Driver ...
 type Driver struct {
-	backend     Backend
 	mailService MailService
 }
 
 // NewDriver ...
-func NewDriver(backend Backend, mailService MailService) Driver {
-	return Driver{backend, mailService}
+func NewDriver(mailService MailService) Driver {
+	return Driver{mailService}
 }
 
 // GetRandomPassword ...
@@ -44,13 +43,8 @@ func (d Driver) GetRandomPassword(domain Domain, length uint) (string, error) {
 	}
 }
 
-// AssignRandomPassword ...
-func (d Driver) AssignRandomPassword(alg string, domain Domain, length uint, userID string) error {
-	password, err := d.GetRandomPassword(domain, length)
-	if err != nil {
-		return err
-	}
-
+// GetHash ...
+func (d Driver) GetHash(alg string, password string) (string, error) {
 	var hash []byte
 	switch alg {
 	case "MD5":
@@ -94,53 +88,13 @@ func (d Driver) AssignRandomPassword(alg string, domain Domain, length uint, use
 	case "SSHA3-512":
 		hash = makehash(sha3.New512(), password, true)
 	default:
-		return fmt.Errorf("invalid password hash algorithm: %v", alg)
+		return "", fmt.Errorf("invalid password hash algorithm: %v", alg)
 	}
 
 	b64 := base64.StdEncoding.EncodeToString(hash)
 	result := fmt.Sprintf("{%s}%s", alg, b64)
 
-	emails, err := d.backend.GetUserEmails(userID)
-	if err != nil {
-		return err
-	}
-
-	if len(emails) <= 0 {
-		return fmt.Errorf("user has no e-mail, password change is forbidden")
-	}
-
-	firstname, err := d.backend.GetUserFirstName(userID)
-	if err != nil {
-		return err
-	}
-
-	lastname, err := d.backend.GetUserLastName(userID)
-	if err != nil {
-		return err
-	}
-
-	if err := d.backend.SetUserPassword(userID, result); err != nil {
-		return err
-	}
-
-	values := map[string]string{
-		"FirstName": firstname,
-		"LastName":  lastname,
-		"Password":  password,
-	}
-
-	errs := []string{}
-	for _, email := range emails {
-		if err := d.mailService.SendMail(email, "AssignPassword", values); err != nil {
-			errs = append(errs, err.Error())
-		}
-	}
-
-	if len(errs) == len(emails) {
-		return fmt.Errorf(strings.Join(errs, ", "))
-	}
-
-	return nil
+	return result, nil
 }
 
 // makehash make a hash of the passphrase with the specified secure hash algorithm

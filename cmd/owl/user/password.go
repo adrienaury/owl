@@ -23,7 +23,7 @@ var (
 func initPasswordCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:     "new-password [ID]",
-		Short:   "Assign a new password to user",
+		Short:   "Assign a new password to user and send it by mail",
 		Long:    "",
 		Aliases: []string{"passwd"},
 		Example: fmt.Sprintf(`  %[1]s user new-password joker`, parentCmd.Root().Name()),
@@ -49,11 +49,24 @@ func initPasswordCommand(parentCmd *cobra.Command) {
 				domain = password.NewDomain(flagCharDomain)
 			}
 
-			err := passwordDriver.AssignRandomPassword(flagHashAlgorithm, domain, flagLength, id)
+			password, err := passwordDriver.GetRandomPassword(domain, flagLength)
 			if err != nil {
 				cmd.PrintErrln(err)
 				os.Exit(1)
 			}
+
+			hash, err := passwordDriver.GetHash(flagHashAlgorithm, password)
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+
+			if err := userDriver.AssignPassword(id, hash); err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+
+			fmt.Println(password, hash)
 
 			flagUnit := cmd.Flag("unit")
 			flagRealm := cmd.Flag("realm")

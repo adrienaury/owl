@@ -1,5 +1,9 @@
 package user
 
+import (
+	"fmt"
+)
+
 // Driver ...
 type Driver struct {
 	backend Backend
@@ -65,5 +69,23 @@ func (d Driver) Delete(id string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+// AssignPassword ...
+func (d Driver) AssignPassword(userID string, password string) error {
+	user, err := d.backend.GetUser(userID)
+	if err != nil {
+		return err
+	}
+
+	if len(user.Emails()) <= 0 {
+		return fmt.Errorf("user has no e-mail, password change is forbidden")
+	}
+
+	if err := d.backend.SetUserPassword(userID, password); err != nil {
+		return err
+	}
+
 	return nil
 }
