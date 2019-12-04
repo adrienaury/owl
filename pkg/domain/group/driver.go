@@ -1,11 +1,11 @@
 package group
 
-// Driver ...
+// Driver is the entry point of the domain that expose methods.
 type Driver struct {
 	backend Backend
 }
 
-// NewDriver ...
+// NewDriver create a new domain driver with given driven implementations.
 func NewDriver(backend Backend) Driver {
 	return Driver{backend}
 }

@@ -1,6 +1,6 @@
 package unit
 
-// Backend ...
+// Backend interface.
 type Backend interface {
 	ListUnits() (List, error)
 	GetUnit(id string) (Unit, error)

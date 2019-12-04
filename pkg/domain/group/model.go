@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// Group ...
+// Group object contains information about a group of users.
 type Group interface {
 	ID() string
 	Members() []string
@@ -19,7 +19,7 @@ type group struct {
 	members []string
 }
 
-// NewGroup ...
+// NewGroup create a new group object.
 func NewGroup(id string, members ...string) Group {
 	return group{
 		id:      id,
@@ -47,7 +47,7 @@ func (g group) MarshalYAML() (interface{}, error) {
 	}{g.id, g.members}, nil
 }
 
-// List ...
+// List of group objects.
 type List interface {
 	All() []Group
 	Index(idx uint) Group
@@ -61,7 +61,7 @@ type grouplist struct {
 	slice []Group
 }
 
-// NewList ...
+// NewList create a new list of group object.
 func NewList(slice []Group) List {
 	return grouplist{slice}
 }

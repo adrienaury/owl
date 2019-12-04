@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// User ...
+// User object contains informations about a user.
 type User interface {
 	ID() string
 	FirstNames() []string
@@ -23,7 +23,7 @@ type user struct {
 	emails     []string
 }
 
-// NewUser ...
+// NewUser create a new user object.
 func NewUser(id string, firstNames []string, lastNames []string, emails []string) User {
 	return user{
 		id:         id,
@@ -71,7 +71,7 @@ func (u user) MarshalYAML() (interface{}, error) {
 	}, nil
 }
 
-// List ...
+// List of user objects.
 type List interface {
 	All() []User
 	Index(idx uint) User
@@ -85,7 +85,7 @@ type userlist struct {
 	slice []User
 }
 
-// NewList ...
+// NewList create a new list of users object.
 func NewList(slice []User) List {
 	return userlist{slice}
 }

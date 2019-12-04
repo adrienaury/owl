@@ -1,6 +1,6 @@
 package group
 
-// Backend ...
+// Backend interface.
 type Backend interface {
 	ListGroups() (List, error)
 	GetGroup(id string) (Group, error)

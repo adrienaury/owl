@@ -1,6 +1,6 @@
 package password
 
-// Domain ...
+// Domain object contains information about characters used to construct a random secret string.
 type Domain interface {
 	Len() uint
 	AsSlice() []rune
@@ -12,7 +12,7 @@ type domain struct {
 	chars []rune
 }
 
-// NewDomain ...
+// NewDomain create a new domain object.
 func NewDomain(chars string) Domain {
 	return domain{[]rune(chars)}
 }

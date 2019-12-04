@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// Unit ...
+// Unit object contains information about an organizational unit.
 type Unit interface {
 	ID() string
 	Description() string
@@ -19,7 +19,7 @@ type unit struct {
 	decription string
 }
 
-// NewUnit ...
+// NewUnit create a new unit object.
 func NewUnit(id, decription string) Unit {
 	return unit{
 		id:         id,
@@ -47,7 +47,7 @@ func (u unit) MarshalYAML() (interface{}, error) {
 	}{u.id, u.decription}, nil
 }
 
-// List ...
+// List of unit objects.
 type List interface {
 	All() []Unit
 	Index(idx uint) Unit
@@ -61,7 +61,7 @@ type unitlist struct {
 	slice []Unit
 }
 
-// NewList ...
+// NewList create a new list of units object.
 func NewList(slice []Unit) List {
 	return unitlist{slice}
 }

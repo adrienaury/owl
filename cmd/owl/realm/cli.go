@@ -15,13 +15,13 @@ var (
 	credentialsDriver credentials.Driver
 )
 
-// SetDrivers ...
+// SetDrivers inject required domain drivers in the command.
 func SetDrivers(r realm.Driver, c credentials.Driver) {
 	realmDriver = r
 	credentialsDriver = c
 }
 
-// SetSession ...
+// SetSession inject the global session in the command.
 func SetSession(s *session.Session) {
 	globalSession = s
 }

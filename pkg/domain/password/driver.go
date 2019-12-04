@@ -13,13 +13,13 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-// Driver ...
+// Driver is the entry point of the domain that expose methods.
 type Driver struct {
 	backend Backend
 	spusher SecretPusher
 }
 
-// NewDriver ...
+// NewDriver create a new domain driver with given driven implementations.
 func NewDriver(backend Backend, spusher SecretPusher) Driver {
 	return Driver{backend, spusher}
 }

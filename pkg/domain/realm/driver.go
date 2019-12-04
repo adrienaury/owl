@@ -1,11 +1,11 @@
 package realm
 
-// Driver ...
+// Driver is the entry point of the domain that expose methods.
 type Driver struct {
 	storage Storage
 }
 
-// NewDriver ...
+// NewDriver create a new domain driver with given driven implementations.
 func NewDriver(storage Storage) Driver {
 	return Driver{storage}
 }

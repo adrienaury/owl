@@ -1,6 +1,6 @@
 package realm
 
-// Storage ...
+// Storage interface for storing realms.
 type Storage interface {
 	CreateOrUpdateRealm(r Realm) error
 	GetRealm(id string) (Realm, error)

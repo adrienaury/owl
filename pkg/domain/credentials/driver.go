@@ -1,12 +1,12 @@
 package credentials
 
-// Driver ...
+// Driver is the entry point of the domain that expose methods.
 type Driver struct {
 	storage Storage
 	backend Backend
 }
 
-// NewDriver ...
+// NewDriver create a new domain driver with given driven implementations.
 func NewDriver(storage Storage, backend Backend) Driver {
 	return Driver{storage, backend}
 }

@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// Realm ...
+// Realm object contains informations about a realm.
 type Realm interface {
 	ID() string
 	URL() string
@@ -21,7 +21,7 @@ type realm struct {
 	username string
 }
 
-// NewRealm ...
+// NewRealm create a new realm object.
 func NewRealm(id, url, username string) Realm {
 	return realm{
 		id:       id,
@@ -45,7 +45,7 @@ func (r realm) MarshalYAML() (interface{}, error) {
 	return struct{ ID, URL, Username string }{r.id, r.url, r.username}, nil
 }
 
-// List ...
+// List of realm objects.
 type List interface {
 	All() []Realm
 	Index(idx uint) Realm
@@ -59,7 +59,7 @@ type realmlist struct {
 	slice []Realm
 }
 
-// NewList ...
+// NewList create a new list of realms object.
 func NewList(slice []Realm) List {
 	return realmlist{slice}
 }

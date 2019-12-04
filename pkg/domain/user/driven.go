@@ -1,6 +1,6 @@
 package user
 
-// Backend ...
+// Backend interface.
 type Backend interface {
 	ListUsers() (List, error)
 	GetUser(id string) (User, error)

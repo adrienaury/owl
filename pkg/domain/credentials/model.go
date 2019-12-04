@@ -1,6 +1,6 @@
 package credentials
 
-// Credentials ...
+// Credentials object contains information on how to connect to a realm.
 type Credentials interface {
 	URL() string
 	Username() string
@@ -13,7 +13,7 @@ type credentials struct {
 	password string
 }
 
-// NewCredentials ...
+// NewCredentials create a new credentials object.
 func NewCredentials(url, username, password string) Credentials {
 	return credentials{
 		url:      url,

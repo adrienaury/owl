@@ -23,7 +23,7 @@ var (
 	credentialsDriver credentials.Driver
 )
 
-// SetDrivers ...
+// SetDrivers inject required domain drivers in the command.
 func SetDrivers(gd group.Driver, us user.Driver, un unit.Driver, r realm.Driver, c credentials.Driver) {
 	groupDriver = gd
 	userDriver = us
