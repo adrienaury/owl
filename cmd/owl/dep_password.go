@@ -7,7 +7,7 @@ import (
 	infra "github.com/adrienaury/owl/pkg/infra"
 )
 
-func newMailService() domain.MailService {
+func newMailService() domain.SecretPusher {
 	// TODO : viper
 	addr := os.Getenv("SMTP_ADDR")
 	from := os.Getenv("SMTP_FROM")

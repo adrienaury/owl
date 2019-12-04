@@ -6,7 +6,7 @@ type Backend interface {
 	SetUserPassword(userID string, hashedPassword string) error
 }
 
-// MailService ...
-type MailService interface {
-	SendMail(email string, templateID string, values map[string]string) error
+// SecretPusher ...
+type SecretPusher interface {
+	PushSecret(email string, secretType string, secret string) error
 }

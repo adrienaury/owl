@@ -33,15 +33,20 @@ func (ms MailService) GetTemplate(templateID string) (string, error) {
 	return string(dat), nil
 }
 
-// SendMail ...
-func (ms MailService) SendMail(email string, templateID string, values map[string]string) error {
-	tmpl, err := ms.GetTemplate(templateID)
+// PushSecret ...
+func (ms MailService) PushSecret(email string, secretType string, secret string) error {
+	tmpl, err := ms.GetTemplate(secretType)
 	if err != nil {
 		return err
 	}
 
 	sb := strings.Builder{}
-	t := template.Must(template.New("mail").Parse(tmpl))
+	values := map[string]string{
+		"password": secret,
+		"to":       email,
+	}
+
+	t := template.Must(template.New(secretType).Parse(tmpl))
 	err = t.Execute(&sb, values)
 	if err != nil {
 		return err

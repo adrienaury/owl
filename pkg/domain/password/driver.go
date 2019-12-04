@@ -15,13 +15,13 @@ import (
 
 // Driver ...
 type Driver struct {
-	backend     Backend
-	mailService MailService
+	backend Backend
+	spusher SecretPusher
 }
 
 // NewDriver ...
-func NewDriver(backend Backend, mailService MailService) Driver {
-	return Driver{backend, mailService}
+func NewDriver(backend Backend, spusher SecretPusher) Driver {
+	return Driver{backend, spusher}
 }
 
 // AssignRandomPassword ...
@@ -54,12 +54,7 @@ func (d Driver) AssignPassword(userID string, alg string, password string) error
 		return err
 	}
 
-	values := map[string]string{
-		"password": password,
-		"to":       mail,
-	}
-
-	if err := d.mailService.SendMail(mail, "AssignPassword", values); err != nil {
+	if err := d.spusher.PushSecret(mail, "user_password", password); err != nil {
 		return err
 	}
 
