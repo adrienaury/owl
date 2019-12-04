@@ -88,14 +88,14 @@ func (d Driver) GetHash(alg string, password string) (string, error) {
 	var hash []byte
 	switch alg {
 	/* Weak cryptographic primitive blacklisted
-	    case "MD5":
-			hash = makehash(md5.New(), password, false)
-		case "SMD5":
-			hash = makehash(md5.New(), password, true)
-		case "SHA", "SHA1":
-			hash = makehash(sha1.New(), password, false)
-		case "SSHA", "SSHA1":
-			hash = makehash(sha1.New(), password, true) */
+	case "MD5":
+		hash = makehash(md5.New(), password, false)
+	case "SMD5":
+		hash = makehash(md5.New(), password, true)
+	case "SHA", "SHA1":
+		hash = makehash(sha1.New(), password, false)
+	case "SSHA", "SSHA1":
+		hash = makehash(sha1.New(), password, true) */
 	case "SHA224":
 		hash = makehash(sha256.New224(), password, false)
 	case "SSHA224":
@@ -128,6 +128,14 @@ func (d Driver) GetHash(alg string, password string) (string, error) {
 		hash = makehash(sha3.New512(), password, false)
 	case "SSHA3-512":
 		hash = makehash(sha3.New512(), password, true)
+	case "SHAKE128":
+		hash = makeshakehash(sha3.NewShake128(), 32, password, false)
+	case "SSHAKE128":
+		hash = makeshakehash(sha3.NewShake128(), 32, password, true)
+	case "SHAKE256":
+		hash = makeshakehash(sha3.NewShake256(), 64, password, false)
+	case "SSHAKE256":
+		hash = makeshakehash(sha3.NewShake256(), 64, password, true)
 	default:
 		return "", fmt.Errorf("invalid password hash algorithm: %v", alg)
 	}
@@ -139,10 +147,24 @@ func (d Driver) GetHash(alg string, password string) (string, error) {
 }
 
 // makehash make a hash of the passphrase with the specified secure hash algorithm
+func makeshakehash(alg sha3.ShakeHash, size int, password string, salted bool) []byte {
+	h := make([]byte, size)
+	_, _ = alg.Write([]byte(password))
+	if salted {
+		salt := makeSalt(size)
+		_, _ = alg.Write(salt)
+		alg.Read(h)
+		return append(h, salt...)
+	}
+	alg.Read(h)
+	return h
+}
+
+// makehash make a hash of the passphrase with the specified secure hash algorithm
 func makehash(alg hash.Hash, password string, salted bool) []byte {
 	_, _ = alg.Write([]byte(password))
 	if salted {
-		salt := makeSalt()
+		salt := makeSalt(alg.Size())
 		_, _ = alg.Write(salt)
 		h := alg.Sum(nil)
 		return append(h, salt...)
@@ -150,9 +172,9 @@ func makehash(alg hash.Hash, password string, salted bool) []byte {
 	return alg.Sum(nil)
 }
 
-// makeSalt make a 4 byte array containing random bytes.
-func makeSalt() []byte {
-	sbytes := make([]byte, 4)
+// makeSalt make a byte array containing random bytes.
+func makeSalt(size int) []byte {
+	sbytes := make([]byte, size)
 	_, err := rand.Read(sbytes)
 	if err != nil {
 		panic(err)
