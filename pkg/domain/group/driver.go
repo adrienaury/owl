@@ -10,7 +10,7 @@ func NewDriver(backend Backend) Driver {
 	return Driver{backend}
 }
 
-// List ...
+// List all groups.
 func (d Driver) List() (List, error) {
 	list, err := d.backend.ListGroups()
 	if err != nil {
@@ -19,7 +19,7 @@ func (d Driver) List() (List, error) {
 	return list, nil
 }
 
-// Get ...
+// Get the group with id.
 func (d Driver) Get(id string) (Group, error) {
 	group, err := d.backend.GetGroup(id)
 	if err != nil {
@@ -28,7 +28,7 @@ func (d Driver) Get(id string) (Group, error) {
 	return group, nil
 }
 
-// Create ...
+// Create a new group.
 func (d Driver) Create(g Group) error {
 	err := d.backend.CreateGroup(g)
 	if err != nil {
@@ -37,7 +37,7 @@ func (d Driver) Create(g Group) error {
 	return nil
 }
 
-// Apply ...
+// Apply new attributes to an existing group, or create a new one.
 func (d Driver) Apply(g Group) (bool, error) {
 	group, err := d.backend.GetGroup(g.ID())
 	if err != nil {
@@ -59,7 +59,7 @@ func (d Driver) Apply(g Group) (bool, error) {
 	return exists, nil
 }
 
-// Delete ...
+// Delete the group with id.
 func (d Driver) Delete(id string) error {
 	err := d.backend.DeleteGroup(id)
 	if err != nil {
@@ -68,7 +68,7 @@ func (d Driver) Delete(id string) error {
 	return nil
 }
 
-// AddMembers ...
+// AddMembers to the group with id.
 func (d Driver) AddMembers(id string, memberIDs ...string) error {
 	err := d.backend.AddToGroup(id, memberIDs...)
 	if err != nil {
@@ -77,7 +77,7 @@ func (d Driver) AddMembers(id string, memberIDs ...string) error {
 	return nil
 }
 
-// RemoveMembers ...
+// RemoveMembers from the group with id.
 func (d Driver) RemoveMembers(id string, memberIDs ...string) error {
 	err := d.backend.RemoveFromGroup(id, memberIDs...)
 	if err != nil {

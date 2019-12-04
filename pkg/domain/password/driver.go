@@ -24,7 +24,7 @@ func NewDriver(backend Backend, spusher SecretPusher) Driver {
 	return Driver{backend, spusher}
 }
 
-// AssignRandomPassword ...
+// AssignRandomPassword to the user with id, the secret is pushed to the user securely.
 func (d Driver) AssignRandomPassword(userID string, alg string, domain Domain, length uint) error {
 	password, err := d.GetRandomPassword(domain, length)
 	if err != nil {
@@ -38,7 +38,7 @@ func (d Driver) AssignRandomPassword(userID string, alg string, domain Domain, l
 	return nil
 }
 
-// AssignPassword ...
+// AssignPassword to the user with id, the secret is pushed to the user securely.
 func (d Driver) AssignPassword(userID string, alg string, password string) error {
 	mail, err := d.backend.GetPrincipalEmail(userID)
 	if err != nil {
@@ -65,7 +65,7 @@ func (d Driver) AssignPassword(userID string, alg string, password string) error
 	return nil
 }
 
-// GetRandomPassword ...
+// GetRandomPassword generate a random password with given length and domain.
 func (d Driver) GetRandomPassword(domain Domain, length uint) (string, error) {
 	if length == 0 {
 		return "", fmt.Errorf("can't generate a 0-length password")
@@ -83,7 +83,7 @@ func (d Driver) GetRandomPassword(domain Domain, length uint) (string, error) {
 	}
 }
 
-// GetHashAlgorithms ...
+// GetHashAlgorithms returns list of supported hash algorithms.
 func (d Driver) GetHashAlgorithms() []string {
 	return []string{
 		"SHA224",
@@ -109,7 +109,7 @@ func (d Driver) GetHashAlgorithms() []string {
 	}
 }
 
-// GetHash ...
+// GetHash hash the password with the given algorithm.
 func (d Driver) GetHash(alg string, password string) (string, error) {
 	var hash []byte
 	switch alg {

@@ -11,7 +11,7 @@ func NewDriver(storage Storage, backend Backend) Driver {
 	return Driver{storage, backend}
 }
 
-// Set ...
+// Set password for the couple URL / Username and store it securely.
 func (d Driver) Set(url string, username string, password string) error {
 	if err := d.storage.SetCredentials(NewCredentials(url, username, password)); err != nil {
 		return err
@@ -19,7 +19,7 @@ func (d Driver) Set(url string, username string, password string) error {
 	return nil
 }
 
-// Remove ...
+// Remove password for the couple URL / Username from backend storage.
 func (d Driver) Remove(url string, username string) error {
 	if err := d.storage.RemoveCredentials(url, username); err != nil {
 		return err
@@ -27,7 +27,7 @@ func (d Driver) Remove(url string, username string) error {
 	return nil
 }
 
-// Get ...
+// Get password for the couple URL / Username.
 func (d Driver) Get(url string, username string) (Credentials, error) {
 	r, err := d.storage.GetCredentials(url, username)
 	if err != nil {
@@ -36,7 +36,7 @@ func (d Driver) Get(url string, username string) (Credentials, error) {
 	return r, nil
 }
 
-// Test ...
+// Test credentials (URL / Username / Password) against the backend.
 func (d Driver) Test(creds Credentials) (bool, error) {
 	ok, err := d.backend.TestCredentials(creds)
 	if err != nil {
@@ -45,7 +45,7 @@ func (d Driver) Test(creds Credentials) (bool, error) {
 	return ok, nil
 }
 
-// Use ...
+// Use method tell the backend to start using the credentials.
 func (d Driver) Use(creds Credentials) {
 	d.backend.UseCredentials(creds)
 }

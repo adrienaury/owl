@@ -10,7 +10,7 @@ func NewDriver(backend Backend) Driver {
 	return Driver{backend}
 }
 
-// List ...
+// List all users.
 func (d Driver) List() (List, error) {
 	list, err := d.backend.ListUsers()
 	if err != nil {
@@ -19,7 +19,7 @@ func (d Driver) List() (List, error) {
 	return list, nil
 }
 
-// Get ...
+// Get the user with id.
 func (d Driver) Get(id string) (User, error) {
 	unit, err := d.backend.GetUser(id)
 	if err != nil {
@@ -28,7 +28,7 @@ func (d Driver) Get(id string) (User, error) {
 	return unit, nil
 }
 
-// Create ...
+// Create a new user.
 func (d Driver) Create(u User) error {
 	err := d.backend.CreateUser(u)
 	if err != nil {
@@ -37,7 +37,7 @@ func (d Driver) Create(u User) error {
 	return nil
 }
 
-// Apply ...
+// Apply new attributes to an existing user, or create a new one.
 func (d Driver) Apply(u User) (bool, error) {
 	user, err := d.backend.GetUser(u.ID())
 	if err != nil {
@@ -59,7 +59,7 @@ func (d Driver) Apply(u User) (bool, error) {
 	return exists, nil
 }
 
-// Delete ...
+// Delete the user with id.
 func (d Driver) Delete(id string) error {
 	err := d.backend.DeleteUser(id)
 	if err != nil {

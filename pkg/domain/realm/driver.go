@@ -10,7 +10,7 @@ func NewDriver(storage Storage) Driver {
 	return Driver{storage}
 }
 
-// Set ...
+// Set method create (if not exists) or update (if exists) the realm with id.
 func (d Driver) Set(id string, url string, username string) error {
 	if err := d.storage.CreateOrUpdateRealm(NewRealm(id, url, username)); err != nil {
 		return err
@@ -18,7 +18,7 @@ func (d Driver) Set(id string, url string, username string) error {
 	return nil
 }
 
-// Get ...
+// Get the realm with id.
 func (d Driver) Get(id string) (Realm, error) {
 	r, err := d.storage.GetRealm(id)
 	if err != nil {
@@ -27,7 +27,7 @@ func (d Driver) Get(id string) (Realm, error) {
 	return r, nil
 }
 
-// Delete ...
+// Delete the realm with id.
 func (d Driver) Delete(id string) error {
 	err := d.storage.DeleteRealm(id)
 	if err != nil {
@@ -36,7 +36,7 @@ func (d Driver) Delete(id string) error {
 	return nil
 }
 
-// List ...
+// List all realms.
 func (d Driver) List() (List, error) {
 	list, err := d.storage.ListRealms()
 	if err != nil {
