@@ -3,7 +3,7 @@
 SHELL := /bin/bash # Use bash syntax
 
 # Build variables
-BUILD_DIR ?= .target
+BUILD_DIR ?= bin
 VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || git symbolic-ref -q --short HEAD)
 COMMIT_HASH ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
@@ -102,3 +102,12 @@ ifeq (${RELEASE}, 1)
 	docker push ${DOCKER_IMAGE}:${MAJOR}
 	docker push ${DOCKER_IMAGE}:latest
 endif
+
+.PHONY: license
+license: mkdir docker ## Scan dependencies and licenses
+	docker create --name owl-license ${DOCKER_IMAGE}:${DOCKER_TAG}
+	docker cp owl-license:/owl - > ${BUILD_DIR}/owl.tar
+	docker rm -v owl-license
+	mkdir -p ${BUILD_DIR}/owl-license
+	tar xvf ${BUILD_DIR}/owl.tar -C ${BUILD_DIR}/owl-license
+	golicense ${BUILD_DIR}/owl-license/owl

@@ -1,5 +1,11 @@
 # Owl
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/adrienaury/owl)](https://goreportcard.com/report/github.com/adrienaury/owl)
+[![Github Release Card](https://img.shields.io/github/release/adrienaury/owl)](https://github.com/adrienaury/owl/releases)
+[![codecov](https://codecov.io/gh/adrienaury/owl/branch/develop/graph/badge.svg)](https://codecov.io/gh/adrienaury/owl)
+[![Build Status](https://travis-ci.org/adrienaury/owl.svg?branch=develop)](https://travis-ci.org/adrienaury/owl)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fadrienaury%2Fowl.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fadrienaury%2Fowl?ref=badge_shield)
+
 Owl is a platform agnostic set of tools to manage realms of units, users and groups. Thanks to the modular conception, any backend can theorically be used to store and access data (LDAP, MySQL, MongoDB, ...). For now, only LDAP is supported, please open an issue if another one is needed.
 
 The project is composed of 3 tools :
@@ -295,3 +301,16 @@ I'm Adrien and my mail is adrien.aury@gmail.com
 ### Main license
 
 The project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
+
+### Use of 3rd party librairies
+
+Library                                     | Version | Licenses                       | Usage                |
+--------------------------------------------|---------|--------------------------------|----------------------|
+github.com/spf13/cobra                      | v0.0.5  | [Apache-2.0]](NOTICE.md#cobra) | CLI Library          |
+github.com/mitchellh/go-homedir             | v1.1.0  | [MIT]](NOTICE.md#go-homedir)   | Find User Home       |
+github.com/docker/docker-credential-helpers | v0.6.3  | [MIT]](NOTICE.md#dch)          | Local Secret Storage |
+golang.org/pkg                              | v1.13   | [BSD-3-Clause](NOTICE.md#go)   | Go Standard Library  |
+
+Check NOTICE.md for copyright notices.
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fadrienaury%2Fowl.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fadrienaury%2Fowl?ref=badge_large)

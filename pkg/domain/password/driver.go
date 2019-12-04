@@ -179,10 +179,10 @@ func makeshakehash(alg sha3.ShakeHash, size int, password string, salted bool) [
 	if salted {
 		salt := makeSalt(size)
 		_, _ = alg.Write(salt)
-		alg.Read(h)
+		_, _ = alg.Read(h)
 		return append(h, salt...)
 	}
-	alg.Read(h)
+	_, _ = alg.Read(h)
 	return h
 }
 
