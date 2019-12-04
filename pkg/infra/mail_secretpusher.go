@@ -33,6 +33,17 @@ func (ms MailService) GetTemplate(templateID string) (string, error) {
 	return string(dat), nil
 }
 
+// CanPushSecret ...
+func (ms MailService) CanPushSecret() error {
+	client, err := smtp.Dial(ms.addr)
+	if err != nil {
+		return err
+	}
+	defer client.Close()
+
+	return client.Noop()
+}
+
 // PushSecret ...
 func (ms MailService) PushSecret(email string, secretType string, secret string) error {
 	tmpl, err := ms.GetTemplate(secretType)

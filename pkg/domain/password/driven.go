@@ -9,4 +9,5 @@ type Backend interface {
 // SecretPusher ...
 type SecretPusher interface {
 	PushSecret(email string, secretType string, secret string) error
+	CanPushSecret() error
 }

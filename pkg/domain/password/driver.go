@@ -50,6 +50,10 @@ func (d Driver) AssignPassword(userID string, alg string, password string) error
 		return err
 	}
 
+	if err := d.spusher.CanPushSecret(); err != nil {
+		return err
+	}
+
 	if err := d.backend.SetUserPassword(userID, hash); err != nil {
 		return err
 	}

@@ -23,7 +23,7 @@ var (
 func initPasswordCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:     "new-password [ID]",
-		Short:   "Assign a new password to user and send it by mail",
+		Short:   "Assign a new password to user",
 		Long:    "",
 		Aliases: []string{"passwd"},
 		Example: fmt.Sprintf(`  %[1]s user new-password joker`, parentCmd.Root().Name()),
