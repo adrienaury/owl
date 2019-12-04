@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/adrienaury/owl/pkg/domain/credentials"
 	"github.com/adrienaury/owl/pkg/domain/group"
@@ -411,93 +409,14 @@ func (b BackendLDAP) DeleteUser(id string) error {
 	return nil
 }
 
-// SetEmailVerificationURI : TODO
-func (b BackendLDAP) SetEmailVerificationURI(userID string, secret string, expire int64) error {
-	if strings.TrimSpace(b.unit) == "" {
-		return fmt.Errorf("no unit selected")
-	}
-
-	conn, err := b.initConnection()
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	if !b.authenticateToServer(b.creds, conn) {
-		return fmt.Errorf("invalid credentials")
-	}
-
-	dn := "cn=" + userID + ",ou=users,ou=" + b.unit + "," + b.baseDN
-
-	uri := secret + " Email-Verification " + string(expire)
-
-	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
-	modRequest.Replace("labeledURI", []string{uri})
-
-	err = conn.Modify(modRequest)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// VerifyEmail : TODO
-func (b BackendLDAP) VerifyEmail(userID string, secret string) error {
-	if strings.TrimSpace(b.unit) == "" {
-		return fmt.Errorf("no unit selected")
-	}
-
-	conn, err := b.initConnection()
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	sr, err := b.search(conn, "ou=users,ou="+b.unit+","+b.baseDN, "(cn="+userID+")", "labeledURI")
-	if err != nil {
-		return err
-	}
-
-	if len(sr.Entries) > 1 {
-		return fmt.Errorf("assertion failed, should have exactly 1 user named %v but got %v", userID, len(sr.Entries))
-	}
-
-	if len(sr.Entries) == 0 {
-		return fmt.Errorf("can't verify e-mail for user" + userID)
-	}
-
-	for _, entry := range sr.Entries {
-		for _, uri := range entry.GetAttributeValues("labeledURI") {
-			parts := strings.Split(uri, " ")
-			if len(parts) == 3 && parts[1] == "Email-Verification" {
-				expire, err := strconv.ParseInt(parts[2], 10, 64)
-				if err == nil {
-					now := time.Now().Unix()
-					if now <= expire {
-						expectedSecret := parts[0]
-						if expectedSecret == secret {
-							return nil
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return fmt.Errorf("e-mail verification failed for user" + userID)
-}
-
-// GetVerifiedEmail : TODO
-func (b BackendLDAP) GetVerifiedEmail(userID string) (string, error) {
+// GetPrincipalEmail ...
+func (b BackendLDAP) GetPrincipalEmail(userID string) (string, error) {
 	user, err := b.GetUser(userID)
 	if err != nil {
 		return "", err
 	}
 	if len(user.Emails()) == 0 {
-		return "", fmt.Errorf("user has no verified e-mail")
+		return "", fmt.Errorf("user has no e-mail")
 	}
 	return user.Emails()[0], nil
 }

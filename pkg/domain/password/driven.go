@@ -2,9 +2,7 @@ package password
 
 // Backend ...
 type Backend interface {
-	SetEmailVerificationURI(userID string, secret string, expire int64) error
-	VerifyEmail(userID string, secret string) error
-	GetVerifiedEmail(userID string) (string, error)
+	GetPrincipalEmail(userID string) (string, error)
 	SetUserPassword(userID string, hashedPassword string) error
 }
 

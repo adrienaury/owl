@@ -40,7 +40,7 @@ func (d Driver) AssignRandomPassword(userID string, alg string, domain Domain, l
 
 // AssignPassword ...
 func (d Driver) AssignPassword(userID string, alg string, password string) error {
-	mail, err := d.backend.GetVerifiedEmail(userID)
+	mail, err := d.backend.GetPrincipalEmail(userID)
 	if err != nil {
 		return err
 	}
