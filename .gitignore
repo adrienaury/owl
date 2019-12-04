@@ -1,6 +1,7 @@
 /bin/
-/.target/
 *.exe
+
+realms.yaml
 
 # IDE integration
 /.vscode/*

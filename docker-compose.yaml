@@ -5,6 +5,11 @@ services:
     ports:
     - "389:389"
     - "636:636"
+  ldap-prod:
+    image: osixia/openldap:1.1.8
+    ports:
+    - "390:389"
+    - "637:636"
   admin:
     image: osixia/phpldapadmin:0.8.0
     environment:
@@ -12,3 +17,8 @@ services:
     ports:
     - "80:80"
     - "443:443"
+  smtp:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"

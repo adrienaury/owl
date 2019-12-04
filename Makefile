@@ -3,7 +3,7 @@
 SHELL := /bin/bash # Use bash syntax
 
 # Build variables
-BUILD_DIR ?= .target
+BUILD_DIR ?= bin
 VERSION ?= $(shell git describe --tags --exact-match 2>/dev/null || git symbolic-ref -q --short HEAD)
 COMMIT_HASH ?= $(shell git rev-parse HEAD 2>/dev/null)
 BUILD_DATE ?= $(shell date +%FT%T%z)
@@ -52,16 +52,16 @@ tidy: ## Add missing and remove unused modules
 .PHONY: lint
 lint: ## Examines Go source code and reports suspicious constructs
 ifeq (, $(shell which golangci-lint))
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.18.0
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b $(go env GOPATH)/bin v1.21.0
 endif
 	golangci-lint run -E misspell -E gocyclo -E gosec -E unparam -E goimports -E nakedret -E gocritic
 
-.PHONY: generate
-generate: ## Update generated code
-	GO111MODULE=on go generate configs/generate.go
+#.PHONY: generate
+#generate: ## Update generated code
+#	GO111MODULE=on go generate configs/generate.go
 
 .PHONY: build-%
-build-%: mkdir generate
+build-%: mkdir #generate
 	GO111MODULE=on go build ${GOARGS} -ldflags "${LDFLAGS}" -o ${BUILD_DIR}/$* ./cmd/$*
 
 .PHONY: build
@@ -102,3 +102,12 @@ ifeq (${RELEASE}, 1)
 	docker push ${DOCKER_IMAGE}:${MAJOR}
 	docker push ${DOCKER_IMAGE}:latest
 endif
+
+.PHONY: license
+license: mkdir docker ## Scan dependencies and licenses
+	docker create --name owl-license ${DOCKER_IMAGE}:${DOCKER_TAG}
+	docker cp owl-license:/owl - > ${BUILD_DIR}/owl.tar
+	docker rm -v owl-license
+	mkdir -p ${BUILD_DIR}/owl-license
+	tar xvf ${BUILD_DIR}/owl.tar -C ${BUILD_DIR}/owl-license
+	golicense ${BUILD_DIR}/owl-license/owl
