@@ -78,7 +78,7 @@ func (s YAMLStorage) GetRealm(id string) (realm.Realm, error) {
 	return nil, nil
 }
 
-// DeleteRealm ...
+// DeleteRealm remove the realm with id from the local storage.
 func (s YAMLStorage) DeleteRealm(id string) error {
 	structure, err := readFile()
 	if err != nil {

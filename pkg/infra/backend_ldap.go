@@ -16,31 +16,31 @@ import (
 	"gopkg.in/ldap.v3"
 )
 
-// BackendLDAP ...
+// BackendLDAP implements a backend over LDAP (OpenLDAP schema).
 type BackendLDAP struct {
 	creds  credentials.Credentials
 	baseDN string
 	unit   string
 }
 
-// NewBackendLDAP ...
+// NewBackendLDAP creates a new BackendLDAP.
 func NewBackendLDAP() BackendLDAP {
 	return BackendLDAP{}
 }
 
-// UseCredentials ...
+// UseCredentials sets the credentials needed to connect to the LDAP server.
 func (b *BackendLDAP) UseCredentials(c credentials.Credentials) {
 	b.creds = c
 	u, _ := url.Parse(c.URL())
 	b.baseDN = strings.Trim(u.EscapedPath(), "/")
 }
 
-// UseUnit ...
+// UseUnit sets the default organizational unit for all operations.
 func (b *BackendLDAP) UseUnit(id string) {
 	b.unit = id
 }
 
-// TestCredentials ...
+// TestCredentials tests specific credentials.
 func (b BackendLDAP) TestCredentials(c credentials.Credentials) (bool, error) {
 	// try to TCP connect to the server to make sure it's reachable, and discover
 	// about the need of certificates or insecure TLS
@@ -67,7 +67,7 @@ func (b BackendLDAP) TestCredentials(c credentials.Credentials) (bool, error) {
 	}
 }
 
-// ListUnits ...
+// ListUnits list all units contained in the LDAP server.
 func (b BackendLDAP) ListUnits() (unit.List, error) {
 	conn, err := b.initConnection()
 	if err != nil {
@@ -92,7 +92,7 @@ func (b BackendLDAP) ListUnits() (unit.List, error) {
 	return unit.NewList(units), nil
 }
 
-// GetUnit ...
+// GetUnit returns a specific unit with id.
 func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
 	conn, err := b.initConnection()
 	if err != nil {
@@ -122,7 +122,7 @@ func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
 	), nil
 }
 
-// CreateUnit ...
+// CreateUnit creates a new unit in the server.
 func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 	conn, err := b.initConnection()
 	if err != nil {
@@ -172,7 +172,7 @@ func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 	return nil
 }
 
-// UpdateUnit ...
+// UpdateUnit modify an existing unit.
 func (b BackendLDAP) UpdateUnit(u unit.Unit) error {
 	conn, err := b.initConnection()
 	if err != nil {
@@ -198,7 +198,7 @@ func (b BackendLDAP) UpdateUnit(u unit.Unit) error {
 	return nil
 }
 
-// DeleteUnit ...
+// DeleteUnit deletes a unit.
 func (b BackendLDAP) DeleteUnit(id string) error {
 	conn, err := b.initConnection()
 	if err != nil {
@@ -235,7 +235,7 @@ func (b BackendLDAP) DeleteUnit(id string) error {
 	return nil
 }
 
-// ListUsers ...
+// ListUsers list all users contained in the LDAP server.
 func (b BackendLDAP) ListUsers() (user.List, error) {
 	if strings.TrimSpace(b.unit) == "" {
 		return nil, fmt.Errorf("no unit selected")
@@ -266,7 +266,7 @@ func (b BackendLDAP) ListUsers() (user.List, error) {
 	return user.NewList(users), nil
 }
 
-// GetUser ..
+// GetUser returns a specific user with id.
 func (b BackendLDAP) GetUser(id string) (user.User, error) {
 	if strings.TrimSpace(b.unit) == "" {
 		return nil, fmt.Errorf("no unit selected")
@@ -302,7 +302,7 @@ func (b BackendLDAP) GetUser(id string) (user.User, error) {
 	), nil
 }
 
-// CreateUser ...
+// CreateUser creates a new user in the default unit.
 func (b BackendLDAP) CreateUser(u user.User) error {
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
@@ -342,7 +342,7 @@ func (b BackendLDAP) CreateUser(u user.User) error {
 	return nil
 }
 
-// UpdateUser ...
+// UpdateUser modify an existing user.
 func (b BackendLDAP) UpdateUser(u user.User) error {
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
@@ -380,7 +380,7 @@ func (b BackendLDAP) UpdateUser(u user.User) error {
 	return nil
 }
 
-// DeleteUser ...
+// DeleteUser deletes a user.
 func (b BackendLDAP) DeleteUser(id string) error {
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
@@ -409,7 +409,7 @@ func (b BackendLDAP) DeleteUser(id string) error {
 	return nil
 }
 
-// GetPrincipalEmail ...
+// GetPrincipalEmail returns the main e-mail (of index 0) of a specific unit with id.
 func (b BackendLDAP) GetPrincipalEmail(userID string) (string, error) {
 	user, err := b.GetUser(userID)
 	if err != nil {
@@ -421,7 +421,7 @@ func (b BackendLDAP) GetPrincipalEmail(userID string) (string, error) {
 	return user.Emails()[0], nil
 }
 
-// SetUserPassword ...
+// SetUserPassword sets hashed password to user.
 func (b BackendLDAP) SetUserPassword(userID string, hashedPassword string) error {
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
@@ -451,7 +451,7 @@ func (b BackendLDAP) SetUserPassword(userID string, hashedPassword string) error
 	return nil
 }
 
-// ListGroups ...
+// ListGroups list all groups contained in the LDAP server.
 func (b BackendLDAP) ListGroups() (group.List, error) {
 	if strings.TrimSpace(b.unit) == "" {
 		return nil, fmt.Errorf("no unit selected")
@@ -487,7 +487,7 @@ func (b BackendLDAP) ListGroups() (group.List, error) {
 	return group.NewList(groups), nil
 }
 
-// GetGroup ...
+// GetGroup returns a specific group with id.
 func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
 	if strings.TrimSpace(b.unit) == "" {
 		return nil, fmt.Errorf("no unit selected")
@@ -530,7 +530,7 @@ func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
 	), nil
 }
 
-// CreateGroup ...
+// CreateGroup creates a new group in the default unit.
 func (b BackendLDAP) CreateGroup(g group.Group) error {
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
@@ -567,7 +567,7 @@ func (b BackendLDAP) CreateGroup(g group.Group) error {
 	return nil
 }
 
-// UpdateGroup ...
+// UpdateGroup modify an existing group.
 func (b BackendLDAP) UpdateGroup(g group.Group) error {
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
@@ -604,7 +604,7 @@ func (b BackendLDAP) UpdateGroup(g group.Group) error {
 	return nil
 }
 
-// DeleteGroup ...
+// DeleteGroup deletes a group.
 func (b BackendLDAP) DeleteGroup(id string) error {
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
@@ -633,7 +633,7 @@ func (b BackendLDAP) DeleteGroup(id string) error {
 	return nil
 }
 
-// AddToGroup ...
+// AddToGroup add members to the group with id.
 func (b BackendLDAP) AddToGroup(id string, memberIDs ...string) error {
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
@@ -668,7 +668,7 @@ func (b BackendLDAP) AddToGroup(id string, memberIDs ...string) error {
 	return nil
 }
 
-// RemoveFromGroup ...
+// RemoveFromGroup remove members from the group with id.
 func (b BackendLDAP) RemoveFromGroup(id string, memberIDs ...string) error {
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")

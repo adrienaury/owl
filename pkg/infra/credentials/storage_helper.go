@@ -28,7 +28,7 @@ type HelperStorage struct {
 	nativeStore client.ProgramFunc
 }
 
-// SetCredentials ...
+// SetCredentials store credentials.
 func (s HelperStorage) SetCredentials(c credentials.Credentials) error {
 	normalizedURL, err := NormalizeLdapServerURLWithCred(c.URL(), c.Username())
 	if err != nil {
@@ -42,7 +42,7 @@ func (s HelperStorage) SetCredentials(c credentials.Credentials) error {
 	return client.Store(s.nativeStore, credentials)
 }
 
-// GetCredentials ...
+// GetCredentials retrieve password for URL and User.
 func (s HelperStorage) GetCredentials(url string, user string) (credentials.Credentials, error) {
 	normalizedURL, err := NormalizeLdapServerURLWithCred(url, user)
 	if err != nil {
@@ -59,7 +59,7 @@ func (s HelperStorage) GetCredentials(url string, user string) (credentials.Cred
 	return credentials.NewCredentials(storedCreds.ServerURL, storedCreds.Username, storedCreds.Secret), nil
 }
 
-// RemoveCredentials ...
+// RemoveCredentials remove credentials for URL and User.
 func (s HelperStorage) RemoveCredentials(url string, user string) error {
 	normalizedURL, err := NormalizeLdapServerURLWithCred(url, user)
 	if err != nil {
