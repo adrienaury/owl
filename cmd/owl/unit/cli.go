@@ -79,5 +79,8 @@ func initCredentials(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	credentialsDriver.Use(creds)
+	if err := credentialsDriver.Use(creds); err != nil {
+		cmd.PrintErrln(err)
+		os.Exit(1)
+	}
 }

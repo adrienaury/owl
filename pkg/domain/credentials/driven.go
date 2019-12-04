@@ -10,5 +10,5 @@ type Storage interface {
 // Backend interface.
 type Backend interface {
 	TestCredentials(c Credentials) (bool, error)
-	UseCredentials(c Credentials)
+	OpenConnection(c Credentials) error
 }

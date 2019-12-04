@@ -18,7 +18,7 @@ import (
 
 // BackendLDAP implements a backend over LDAP (OpenLDAP schema).
 type BackendLDAP struct {
-	creds  credentials.Credentials
+	conn   *ldap.Conn
 	baseDN string
 	unit   string
 }
@@ -28,11 +28,18 @@ func NewBackendLDAP() BackendLDAP {
 	return BackendLDAP{}
 }
 
-// UseCredentials sets the credentials needed to connect to the LDAP server.
-func (b *BackendLDAP) UseCredentials(c credentials.Credentials) {
-	b.creds = c
+// OpenConnection connect to the LDAP server with given credentials.
+func (b *BackendLDAP) OpenConnection(c credentials.Credentials) (err error) {
+	if b.conn != nil {
+		b.conn.Close()
+	}
 	u, _ := url.Parse(c.URL())
 	b.baseDN = strings.Trim(u.EscapedPath(), "/")
+	b.conn, err = b.initConnection(c)
+	if !b.authenticateToServer(c, b.conn) {
+		return fmt.Errorf("invalid credentials")
+	}
+	return err
 }
 
 // UseUnit sets the default organizational unit for all operations.
@@ -69,14 +76,7 @@ func (b BackendLDAP) TestCredentials(c credentials.Credentials) (bool, error) {
 
 // ListUnits list all units contained in the LDAP server.
 func (b BackendLDAP) ListUnits() (unit.List, error) {
-	conn, err := b.initConnection()
-	if err != nil {
-		return nil, err
-	}
-
-	defer conn.Close()
-
-	sr, err := b.search(conn, b.baseDN, "(objectClass=organizationalUnit)", "ou", "description")
+	sr, err := b.search(b.baseDN, "(objectClass=organizationalUnit)", "ou", "description")
 	if err != nil {
 		return nil, err
 	}
@@ -94,14 +94,7 @@ func (b BackendLDAP) ListUnits() (unit.List, error) {
 
 // GetUnit returns a specific unit with id.
 func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
-	conn, err := b.initConnection()
-	if err != nil {
-		return nil, err
-	}
-
-	defer conn.Close()
-
-	sr, err := b.search(conn, b.baseDN, "(ou="+id+")", "ou", "description")
+	sr, err := b.search(b.baseDN, "(ou="+id+")", "ou", "description")
 	if err != nil {
 		return nil, err
 	}
@@ -124,17 +117,6 @@ func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
 
 // CreateUnit creates a new unit in the server.
 func (b BackendLDAP) CreateUnit(u unit.Unit) error {
-	conn, err := b.initConnection()
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	if !b.authenticateToServer(b.creds, conn) {
-		return fmt.Errorf("invalid credentials")
-	}
-
 	dn := "ou=" + u.ID() + "," + b.baseDN
 
 	addRequest := ldap.NewAddRequest(dn, []ldap.Control{})
@@ -142,7 +124,7 @@ func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 	addRequest.Attribute("ou", []string{u.ID()})
 	addRequest.Attribute("description", []string{u.Description()})
 
-	err = conn.Add(addRequest)
+	err := b.conn.Add(addRequest)
 	if err != nil {
 		return err
 	}
@@ -153,7 +135,7 @@ func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 	addRequest.Attribute("objectClass", []string{"organizationalUnit"})
 	addRequest.Attribute("ou", []string{"users"})
 
-	err = conn.Add(addRequest)
+	err = b.conn.Add(addRequest)
 	if err != nil {
 		return err
 	}
@@ -164,7 +146,7 @@ func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 	addRequest.Attribute("objectClass", []string{"organizationalUnit"})
 	addRequest.Attribute("ou", []string{"groups"})
 
-	err = conn.Add(addRequest)
+	err = b.conn.Add(addRequest)
 	if err != nil {
 		return err
 	}
@@ -174,23 +156,12 @@ func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 
 // UpdateUnit modify an existing unit.
 func (b BackendLDAP) UpdateUnit(u unit.Unit) error {
-	conn, err := b.initConnection()
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	if !b.authenticateToServer(b.creds, conn) {
-		return fmt.Errorf("invalid credentials")
-	}
-
 	dn := "ou=" + u.ID() + "," + b.baseDN
 
 	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
 	modRequest.Replace("description", []string{u.Description()})
 
-	err = conn.Modify(modRequest)
+	err := b.conn.Modify(modRequest)
 	if err != nil {
 		return err
 	}
@@ -200,34 +171,23 @@ func (b BackendLDAP) UpdateUnit(u unit.Unit) error {
 
 // DeleteUnit deletes a unit.
 func (b BackendLDAP) DeleteUnit(id string) error {
-	conn, err := b.initConnection()
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	if !b.authenticateToServer(b.creds, conn) {
-		return fmt.Errorf("invalid credentials")
-	}
-
 	dnUsers := "ou=users,ou=" + id + "," + b.baseDN
 	delRequest := ldap.NewDelRequest(dnUsers, []ldap.Control{})
-	err = conn.Del(delRequest)
+	err := b.conn.Del(delRequest)
 	if err != nil && !ldap.IsErrorWithCode(err, 32) {
 		return err
 	}
 
 	dnGroups := "ou=groups,ou=" + id + "," + b.baseDN
 	delRequest = ldap.NewDelRequest(dnGroups, []ldap.Control{})
-	err = conn.Del(delRequest)
+	err = b.conn.Del(delRequest)
 	if err != nil && !ldap.IsErrorWithCode(err, 32) {
 		return err
 	}
 
 	dn := "ou=" + id + "," + b.baseDN
 	delRequest = ldap.NewDelRequest(dn, []ldap.Control{})
-	err = conn.Del(delRequest)
+	err = b.conn.Del(delRequest)
 	if err != nil && !ldap.IsErrorWithCode(err, 32) {
 		return err
 	}
@@ -241,14 +201,7 @@ func (b BackendLDAP) ListUsers() (user.List, error) {
 		return nil, fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.initConnection()
-	if err != nil {
-		return nil, err
-	}
-
-	defer conn.Close()
-
-	sr, err := b.search(conn, "ou=users,ou="+b.unit+","+b.baseDN, "(objectClass=inetOrgPerson)", "cn", "givenName", "sn", "mail")
+	sr, err := b.search("ou=users,ou="+b.unit+","+b.baseDN, "(objectClass=inetOrgPerson)", "cn", "givenName", "sn", "mail")
 	if err != nil {
 		return nil, err
 	}
@@ -272,14 +225,7 @@ func (b BackendLDAP) GetUser(id string) (user.User, error) {
 		return nil, fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.initConnection()
-	if err != nil {
-		return nil, err
-	}
-
-	defer conn.Close()
-
-	sr, err := b.search(conn, "ou=users,ou="+b.unit+","+b.baseDN, "(cn="+id+")", "cn", "givenName", "sn", "mail")
+	sr, err := b.search("ou=users,ou="+b.unit+","+b.baseDN, "(cn="+id+")", "cn", "givenName", "sn", "mail")
 	if err != nil {
 		return nil, err
 	}
@@ -308,17 +254,6 @@ func (b BackendLDAP) CreateUser(u user.User) error {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.initConnection()
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	if !b.authenticateToServer(b.creds, conn) {
-		return fmt.Errorf("invalid credentials")
-	}
-
 	dn := "cn=" + u.ID() + ",ou=users,ou=" + b.unit + "," + b.baseDN
 
 	addRequest := ldap.NewAddRequest(dn, []ldap.Control{})
@@ -334,7 +269,7 @@ func (b BackendLDAP) CreateUser(u user.User) error {
 		addRequest.Attribute("mail", u.Emails())
 	}
 
-	err = conn.Add(addRequest)
+	err := b.conn.Add(addRequest)
 	if err != nil {
 		return err
 	}
@@ -346,17 +281,6 @@ func (b BackendLDAP) CreateUser(u user.User) error {
 func (b BackendLDAP) UpdateUser(u user.User) error {
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
-	}
-
-	conn, err := b.initConnection()
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	if !b.authenticateToServer(b.creds, conn) {
-		return fmt.Errorf("invalid credentials")
 	}
 
 	dn := "cn=" + u.ID() + ",ou=users,ou=" + b.unit + "," + b.baseDN
@@ -372,7 +296,7 @@ func (b BackendLDAP) UpdateUser(u user.User) error {
 		modRequest.Replace("mail", u.Emails())
 	}
 
-	err = conn.Modify(modRequest)
+	err := b.conn.Modify(modRequest)
 	if err != nil {
 		return err
 	}
@@ -386,22 +310,10 @@ func (b BackendLDAP) DeleteUser(id string) error {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.initConnection()
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	if !b.authenticateToServer(b.creds, conn) {
-		return fmt.Errorf("invalid credentials")
-	}
-
 	dn := "cn=" + id + ",ou=users,ou=" + b.unit + "," + b.baseDN
-
 	delRequest := ldap.NewDelRequest(dn, []ldap.Control{})
 
-	err = conn.Del(delRequest)
+	err := b.conn.Del(delRequest)
 	if err != nil && !ldap.IsErrorWithCode(err, 32) {
 		return err
 	}
@@ -427,23 +339,12 @@ func (b BackendLDAP) SetUserPassword(userID string, hashedPassword string) error
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.initConnection()
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	if !b.authenticateToServer(b.creds, conn) {
-		return fmt.Errorf("invalid credentials")
-	}
-
 	dn := "cn=" + userID + ",ou=users,ou=" + b.unit + "," + b.baseDN
 
 	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
 	modRequest.Replace("userPassword", []string{hashedPassword})
 
-	err = conn.Modify(modRequest)
+	err := b.conn.Modify(modRequest)
 	if err != nil {
 		return err
 	}
@@ -457,14 +358,7 @@ func (b BackendLDAP) ListGroups() (group.List, error) {
 		return nil, fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.initConnection()
-	if err != nil {
-		return nil, err
-	}
-
-	defer conn.Close()
-
-	sr, err := b.search(conn, "ou=groups,ou="+b.unit+","+b.baseDN, "(objectClass=groupOfUniqueNames)", "cn", "uniqueMember")
+	sr, err := b.search("ou=groups,ou="+b.unit+","+b.baseDN, "(objectClass=groupOfUniqueNames)", "cn", "uniqueMember")
 	if err != nil {
 		return nil, err
 	}
@@ -493,14 +387,7 @@ func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
 		return nil, fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.initConnection()
-	if err != nil {
-		return nil, err
-	}
-
-	defer conn.Close()
-
-	sr, err := b.search(conn, "ou=groups,ou="+b.unit+","+b.baseDN, "(cn="+id+")", "cn", "uniqueMember")
+	sr, err := b.search("ou=groups,ou="+b.unit+","+b.baseDN, "(cn="+id+")", "cn", "uniqueMember")
 	if err != nil {
 		return nil, err
 	}
@@ -536,17 +423,6 @@ func (b BackendLDAP) CreateGroup(g group.Group) error {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.initConnection()
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	if !b.authenticateToServer(b.creds, conn) {
-		return fmt.Errorf("invalid credentials")
-	}
-
 	dn := "cn=" + g.ID() + ",ou=groups,ou=" + b.unit + "," + b.baseDN
 
 	members := []string{}
@@ -559,7 +435,7 @@ func (b BackendLDAP) CreateGroup(g group.Group) error {
 	addRequest.Attribute("cn", []string{g.ID()})
 	addRequest.Attribute("uniqueMember", members)
 
-	err = conn.Add(addRequest)
+	err := b.conn.Add(addRequest)
 	if err != nil {
 		return err
 	}
@@ -571,17 +447,6 @@ func (b BackendLDAP) CreateGroup(g group.Group) error {
 func (b BackendLDAP) UpdateGroup(g group.Group) error {
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
-	}
-
-	conn, err := b.initConnection()
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	if !b.authenticateToServer(b.creds, conn) {
-		return fmt.Errorf("invalid credentials")
 	}
 
 	dn := "cn=" + g.ID() + ",ou=groups,ou=" + b.unit + "," + b.baseDN
@@ -596,7 +461,7 @@ func (b BackendLDAP) UpdateGroup(g group.Group) error {
 		modRequest.Replace("uniqueMember", members)
 	}
 
-	err = conn.Modify(modRequest)
+	err := b.conn.Modify(modRequest)
 	if err != nil {
 		return err
 	}
@@ -610,22 +475,11 @@ func (b BackendLDAP) DeleteGroup(id string) error {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.initConnection()
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	if !b.authenticateToServer(b.creds, conn) {
-		return fmt.Errorf("invalid credentials")
-	}
-
 	dn := "cn=" + id + ",ou=groups,ou=" + b.unit + "," + b.baseDN
 
 	delRequest := ldap.NewDelRequest(dn, []ldap.Control{})
 
-	err = conn.Del(delRequest)
+	err := b.conn.Del(delRequest)
 	if err != nil && !ldap.IsErrorWithCode(err, 32) {
 		return err
 	}
@@ -639,17 +493,6 @@ func (b BackendLDAP) AddToGroup(id string, memberIDs ...string) error {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.initConnection()
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	if !b.authenticateToServer(b.creds, conn) {
-		return fmt.Errorf("invalid credentials")
-	}
-
 	dn := "cn=" + id + ",ou=groups,ou=" + b.unit + "," + b.baseDN
 
 	members := []string{}
@@ -660,7 +503,7 @@ func (b BackendLDAP) AddToGroup(id string, memberIDs ...string) error {
 	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
 	modRequest.Add("uniqueMember", members)
 
-	err = conn.Modify(modRequest)
+	err := b.conn.Modify(modRequest)
 	if err != nil {
 		return err
 	}
@@ -674,17 +517,6 @@ func (b BackendLDAP) RemoveFromGroup(id string, memberIDs ...string) error {
 		return fmt.Errorf("no unit selected")
 	}
 
-	conn, err := b.initConnection()
-	if err != nil {
-		return err
-	}
-
-	defer conn.Close()
-
-	if !b.authenticateToServer(b.creds, conn) {
-		return fmt.Errorf("invalid credentials")
-	}
-
 	dn := "cn=" + id + ",ou=groups,ou=" + b.unit + "," + b.baseDN
 
 	members := []string{}
@@ -695,7 +527,7 @@ func (b BackendLDAP) RemoveFromGroup(id string, memberIDs ...string) error {
 	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
 	modRequest.Delete("uniqueMember", members)
 
-	err = conn.Modify(modRequest)
+	err := b.conn.Modify(modRequest)
 	if err != nil {
 		return err
 	}
@@ -703,12 +535,8 @@ func (b BackendLDAP) RemoveFromGroup(id string, memberIDs ...string) error {
 	return nil
 }
 
-func (b BackendLDAP) search(conn *ldap.Conn, dn string, filter string, attributes ...string) (*ldap.SearchResult, error) {
-	if !b.authenticateToServer(b.creds, conn) {
-		return nil, fmt.Errorf("invalid credentials")
-	}
-
-	sr, err := conn.Search(
+func (b BackendLDAP) search(dn string, filter string, attributes ...string) (*ldap.SearchResult, error) {
+	sr, err := b.conn.Search(
 		ldap.NewSearchRequest(
 			dn,
 			ldap.ScopeSingleLevel,
@@ -726,12 +554,12 @@ func (b BackendLDAP) search(conn *ldap.Conn, dn string, filter string, attribute
 	return sr, nil
 }
 
-func (b BackendLDAP) initConnection() (*ldap.Conn, error) {
-	if b.creds == nil {
+func (b BackendLDAP) initConnection(c credentials.Credentials) (*ldap.Conn, error) {
+	if c == nil {
 		return nil, fmt.Errorf("no credentials")
 	}
 
-	conn, err := b.dialToServer(b.creds)
+	conn, err := b.dialToServer(c)
 	if err != nil {
 		return nil, err
 	}

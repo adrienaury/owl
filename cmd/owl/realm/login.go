@@ -75,7 +75,10 @@ func initLoginCommand(parentCmd *cobra.Command) {
 				os.Exit(1)
 			}
 
-			credentialsDriver.Use(creds)
+			if err := credentialsDriver.Use(creds); err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
 			globalSession.Realm = realm.ID()
 
 			cmd.PrintErrf("Connected to realm '%v' as user '%v'.", realm.ID(), realm.Username())
