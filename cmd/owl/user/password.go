@@ -3,6 +3,7 @@ package user
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/adrienaury/owl/pkg/domain/password"
 	"github.com/spf13/cobra"
@@ -62,8 +63,8 @@ func initPasswordCommand(parentCmd *cobra.Command) {
 			cmd.PrintErrln()
 		},
 	}
-	cmd.Flags().StringVar(&flagHashAlgorithm, "alg", "SSHA256", "password hash algorithm, one of MD5, SMD5, SHA, SHA1, SSHA, SSHA1, SHA224, SSHA224, SHA256, SSHA256, SHA384, SSHA384, SHA512, SSHA512")
-	cmd.Flags().StringVar(&flagCharDomain, "char", string(password.Standard.AsSlice()), "list of characters for the password generation, repeated character appears more often")
+	cmd.Flags().StringVar(&flagHashAlgorithm, "alg", "SSHA512", "password hash algorithm, one of "+strings.Join(passwordDriver.GetHashAlgorithms(), ","))
+	cmd.Flags().StringVar(&flagCharDomain, "char", string(password.LettersAndNumbers.AsSlice()), "list of characters for the password generation, repeated character appears more often")
 	cmd.Flags().BoolVarP(&flagLowerCaseLetters, "lowercase-letters", "l", false, "use lowercase letters for password generation, if set --char is ignored")
 	cmd.Flags().BoolVarP(&flagUpperCaseLetters, "uppercase-letters", "L", false, "use uppercase letters for password generation, if set --char is ignored")
 	cmd.Flags().BoolVarP(&flagNumbers, "numbers", "n", false, "use numbers for password generation, if set --char is ignored")

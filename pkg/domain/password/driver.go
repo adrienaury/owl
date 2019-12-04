@@ -83,6 +83,32 @@ func (d Driver) GetRandomPassword(domain Domain, length uint) (string, error) {
 	}
 }
 
+// GetHashAlgorithms ...
+func (d Driver) GetHashAlgorithms() []string {
+	return []string{
+		"SHA224",
+		"SSHA224",
+		"SHA256",
+		"SSHA256",
+		"SHA384",
+		"SSHA384",
+		"SHA512",
+		"SSHA512",
+		"SHA3-224",
+		"SSHA3-224",
+		"SHA3-256",
+		"SSHA3-256",
+		"SHA3-384",
+		"SSHA3-384",
+		"SHA3-512",
+		"SSHA3-512",
+		"SHAKE128",
+		"SSHAKE128",
+		"SHAKE256",
+		"SSHAKE256",
+	}
+}
+
 // GetHash ...
 func (d Driver) GetHash(alg string, password string) (string, error) {
 	var hash []byte
