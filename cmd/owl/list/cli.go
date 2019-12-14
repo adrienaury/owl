@@ -123,7 +123,7 @@ func InitCommand(parentCmd *cobra.Command) {
 				cmd.Println(string(b))
 			case "table":
 				w := tabwriter.NewWriter(cmd.OutOrStderr(), 0, 0, 2, ' ', 0)
-				fmt.Fprintf(w, "%v\t%v\t%v\t%v\t%v\t%v\n", "Unit", "ID", "First Names", "Last Names", "E-mails", "Member Of")
+				fmt.Fprintf(w, "%v\t%v\t%v\t%v\t%v\t%v\n", "Unit", "User", "First Names", "Last Names", "E-mails", "Member Of")
 				for _, un := range exportedUnits {
 					for _, us := range un.Users.All() {
 						memberOf := []string{}
