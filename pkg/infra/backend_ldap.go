@@ -405,9 +405,9 @@ func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
 
 	userDn := "ou=users,ou=" + b.unit + "," + b.baseDN
 	userIDs := make([]string, len(members))
-	for _, member := range members {
+	for idx, member := range members {
 		if strings.HasSuffix(member, userDn) {
-			userIDs = append(userIDs, strings.TrimPrefix(strings.TrimSuffix(member, ","+userDn), "cn="))
+			userIDs[idx] = strings.TrimPrefix(strings.TrimSuffix(member, ","+userDn), "cn=")
 		}
 	}
 

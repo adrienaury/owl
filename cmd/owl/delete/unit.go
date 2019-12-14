@@ -1,10 +1,18 @@
 package delete
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 
 	"github.com/spf13/cobra"
 )
+
+type singleUnit struct {
+	ID          string
+	Description string
+}
 
 // initUnitCommand initialize the cli delete unit command
 func initUnitCommand(parentCmd *cobra.Command) {
@@ -14,9 +22,41 @@ func initUnitCommand(parentCmd *cobra.Command) {
 		Long:    "",
 		Aliases: []string{"units"},
 		Example: fmt.Sprintf(`  %[1]s delete unit <<< '{"ID": "my-unit"}'`, parentCmd.Root().Name()),
-		Args:    cobra.NoArgs,
+		Args:    cobra.ArbitraryArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			// TODO
+			units := []singleUnit{}
+
+			if len(args) > 1 {
+				units = append(units, singleUnit{args[0], args[1]})
+			} else {
+				b, err := ioutil.ReadAll(cmd.InOrStdin())
+				if err != nil {
+					cmd.PrintErrln(err)
+					os.Exit(1)
+				}
+				err = json.Unmarshal(b, &units)
+				if err != nil {
+					u := singleUnit{}
+					err = json.Unmarshal(b, &u)
+					if err != nil {
+						cmd.PrintErrln(err)
+						os.Exit(1)
+					}
+					units = append(units, u)
+				}
+			}
+
+			flagRealm := cmd.Flag("realm")
+
+			for _, u := range units {
+				err := unitDriver.Delete(u.ID)
+				if err != nil {
+					cmd.PrintErrln(err)
+					os.Exit(1)
+				}
+				cmd.PrintErrf("Deleted unit '%v' in realm '%v'.", u.ID, flagRealm.Value)
+				cmd.PrintErrln()
+			}
 		},
 	}
 	parentCmd.AddCommand(cmd)
