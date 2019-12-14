@@ -12,6 +12,7 @@ import (
 	"github.com/adrienaury/owl/pkg/domain/unit"
 	"github.com/adrienaury/owl/pkg/domain/user"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -98,12 +99,33 @@ func InitCommand(parentCmd *cobra.Command) {
 				})
 			}
 
-			b, err := json.Marshal(exportedStruct{exportedUnits})
-			if err != nil {
-				cmd.PrintErrln(err)
-				os.Exit(1)
+			output := "json"
+			flagOutput := cmd.Flag("output")
+			if flagOutput != nil && strings.TrimSpace(flagOutput.Value.String()) != "" {
+				output = flagOutput.Value.String()
 			}
-			cmd.Println(string(b))
+
+			switch output {
+			case "json":
+				b, err := json.Marshal(exportedStruct{exportedUnits})
+				if err != nil {
+					cmd.PrintErrln(err)
+					os.Exit(1)
+				}
+				cmd.Println(string(b))
+			case "yaml":
+				b, err := yaml.Marshal(exportedStruct{exportedUnits})
+				if err != nil {
+					cmd.PrintErrln(err)
+					os.Exit(1)
+				}
+				cmd.Println(string(b))
+			case "table":
+				// TODO
+			default:
+				cmd.PrintErrf("Invalid output format : %v", output)
+				cmd.PrintErrln()
+			}
 		},
 	}
 	cmd.PersistentFlags().BoolVar(&flagAllUnits, "all-units", false, "export all units")
