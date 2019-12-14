@@ -42,7 +42,7 @@ func (d Driver) Create(u User) error {
 }
 
 // Apply new attributes to an existing user, or create a new one.
-func (d Driver) Apply(u User) (bool, error) {
+func (d Driver) Apply(u User) (updated bool, err error) {
 	user, err := d.backend.GetUser(u.ID())
 	if err != nil {
 		return false, err
@@ -97,6 +97,42 @@ func (d Driver) Update(u User) error {
 	}
 
 	return nil
+}
+
+// Upsert the user with id (update or create).
+func (d Driver) Upsert(u User) (updated bool, err error) {
+	user, err := d.backend.GetUser(u.ID())
+	if err != nil {
+		return false, err
+	}
+
+	if user == nil {
+		return false, d.Create(u)
+	}
+
+	firstNames := u.FirstNames()
+	if len(firstNames) == 0 {
+		firstNames = user.FirstNames()
+	}
+
+	lastNames := u.LastNames()
+	if len(lastNames) == 0 {
+		lastNames = user.LastNames()
+	}
+
+	emails := u.Emails()
+	if len(emails) == 0 {
+		emails = user.Emails()
+	}
+
+	merged := NewUser(u.ID(), firstNames, lastNames, emails)
+
+	err = d.backend.UpdateUser(merged)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // Delete the user with id.

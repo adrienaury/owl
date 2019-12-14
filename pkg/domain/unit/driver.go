@@ -42,7 +42,7 @@ func (d Driver) Create(u Unit) error {
 }
 
 // Apply new attributes to an existing unit, or create a new one.
-func (d Driver) Apply(u Unit) (bool, error) {
+func (d Driver) Apply(u Unit) (updated bool, err error) {
 	unit, err := d.backend.GetUnit(u.ID())
 	if err != nil {
 		return false, err
@@ -86,6 +86,31 @@ func (d Driver) Update(u Unit) error {
 	}
 
 	return nil
+}
+
+// Upsert the unit with id (update or create).
+func (d Driver) Upsert(u Unit) (updated bool, err error) {
+	unit, err := d.backend.GetUnit(u.ID())
+	if err != nil {
+		return false, err
+	}
+
+	if unit == nil {
+		return false, d.Create(u)
+	}
+
+	description := u.Description()
+	if strings.TrimSpace(description) == "" {
+		description = unit.Description()
+	}
+	merged := NewUnit(u.ID(), description)
+
+	err = d.backend.UpdateUnit(merged)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // Delete the unit with id.

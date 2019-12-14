@@ -40,7 +40,7 @@ func (d Driver) Create(g Group) error {
 }
 
 // Apply new attributes to an existing group, or create a new one.
-func (d Driver) Apply(g Group) (bool, error) {
+func (d Driver) Apply(g Group) (updated bool, err error) {
 	group, err := d.backend.GetGroup(g.ID())
 	if err != nil {
 		return false, err
@@ -85,6 +85,32 @@ func (d Driver) Update(g Group) error {
 	}
 
 	return nil
+}
+
+// Upsert the group with id (update or create).
+func (d Driver) Upsert(g Group) (updated bool, err error) {
+	group, err := d.backend.GetGroup(g.ID())
+	if err != nil {
+		return false, err
+	}
+
+	if group == nil {
+		return false, d.Create(g)
+	}
+
+	members := g.Members()
+	if len(members) == 0 {
+		members = group.Members()
+	}
+
+	merged := NewGroup(g.ID(), members...)
+
+	err = d.backend.UpdateGroup(merged)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // Delete the group with id.
