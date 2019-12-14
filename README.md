@@ -139,7 +139,7 @@ Connected to realm 'dev' as user 'admin'.
 Create a new unit with `owl create unit` command.
 
 ```console
-$ owl create unit my-unit Test unit
+$ owl create unit my-unit "Test unit"
 Created unit 'my-unit' in realm 'dev'.
 ```
 
