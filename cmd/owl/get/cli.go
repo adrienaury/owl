@@ -1,8 +1,6 @@
-package list
+package get
 
 import (
-	"encoding/json"
-	"fmt"
 	"os"
 	"strings"
 
@@ -21,9 +19,6 @@ var (
 	unitDriver  unit.Driver
 	userDriver  user.Driver
 	groupDriver group.Driver
-
-	// local flags
-	flagAllUnits bool
 )
 
 // SetDrivers inject required domain drivers in the command.
@@ -35,78 +30,14 @@ func SetDrivers(rd realm.Driver, cd credentials.Driver, und unit.Driver, usd use
 	groupDriver = gd
 }
 
-type exportedUnit struct {
-	ID          string
-	Description string
-	Users       user.List
-	Groups      group.List
-}
-
-type exportedStruct struct {
-	Units []exportedUnit
-}
-
-// InitCommand initialize the cli list command
+// InitCommand initialize the cli get command
 func InitCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:              "list",
-		Short:            "List objects",
-		Long:             "",
-		Aliases:          []string{"ls, export"},
-		Example:          fmt.Sprintf("  %[1]s list", parentCmd.Root().Name()),
-		Args:             cobra.MaximumNArgs(1),
-		PersistentPreRun: initCredentialsAndUnit,
-		Run: func(cmd *cobra.Command, args []string) {
-			var units unit.List
-			var err error
-			if flagAllUnits {
-				units, err = unitDriver.List()
-				if err != nil {
-					cmd.PrintErrln(err)
-					os.Exit(1)
-				}
-			} else {
-				aunit, err := unitDriver.Get(cmd.Flag("unit").Value.String())
-				if err != nil {
-					cmd.PrintErrln(err)
-					os.Exit(1)
-				}
-				units = unit.NewList([]unit.Unit{aunit})
-			}
-
-			exportedUnits := []exportedUnit{}
-			for _, u := range units.All() {
-				unitDriver.Use(u.ID())
-
-				users, err := userDriver.List()
-				if err != nil {
-					cmd.PrintErrln(err)
-					os.Exit(1)
-				}
-
-				groups, err := groupDriver.List()
-				if err != nil {
-					cmd.PrintErrln(err)
-					os.Exit(1)
-				}
-
-				exportedUnits = append(exportedUnits, exportedUnit{
-					ID:          u.ID(),
-					Description: u.Description(),
-					Users:       users,
-					Groups:      groups,
-				})
-			}
-
-			b, err := json.Marshal(exportedStruct{exportedUnits})
-			if err != nil {
-				cmd.PrintErrln(err)
-				os.Exit(1)
-			}
-			cmd.Println(string(b))
-		},
+		Use:     "get",
+		Short:   "Get an object",
+		Long:    "",
+		Aliases: []string{"read"},
 	}
-	cmd.PersistentFlags().BoolVar(&flagAllUnits, "all-units", false, "export all units")
 	parentCmd.AddCommand(cmd)
 	initUnitCommand(cmd)
 	initUserCommand(cmd)
