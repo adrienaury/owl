@@ -47,11 +47,17 @@ func initGroupCommand(parentCmd *cobra.Command) {
 				if err != nil {
 					g := exportedGroup{}
 					err = json.Unmarshal(b, &g)
-					if err != nil {
-						cmd.PrintErrln(err)
-						os.Exit(1)
+					if err != nil || g.ID == "" {
+						tmp := struct{ Groups []exportedGroup }{}
+						err = json.Unmarshal(b, &tmp)
+						if err != nil {
+							cmd.PrintErrln(err)
+							os.Exit(1)
+						}
+						groups = tmp.Groups
+					} else {
+						groups = append(groups, g)
 					}
-					groups = append(groups, g)
 				}
 			}
 

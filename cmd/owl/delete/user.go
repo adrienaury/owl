@@ -52,11 +52,17 @@ func initUserCommand(parentCmd *cobra.Command) {
 				if err != nil {
 					u := exportedUser{}
 					err = json.Unmarshal(b, &u)
-					if err != nil {
-						cmd.PrintErrln(err)
-						os.Exit(1)
+					if err != nil || u.ID == "" {
+						tmp := struct{ Users []exportedUser }{}
+						err = json.Unmarshal(b, &tmp)
+						if err != nil {
+							cmd.PrintErrln(err)
+							os.Exit(1)
+						}
+						users = tmp.Users
+					} else {
+						users = append(users, u)
 					}
-					users = append(users, u)
 				}
 			}
 
