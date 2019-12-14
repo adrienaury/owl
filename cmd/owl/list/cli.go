@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/adrienaury/owl/pkg/domain/credentials"
 	"github.com/adrienaury/owl/pkg/domain/group"
@@ -121,7 +122,23 @@ func InitCommand(parentCmd *cobra.Command) {
 				}
 				cmd.Println(string(b))
 			case "table":
-				// TODO
+				w := tabwriter.NewWriter(cmd.OutOrStderr(), 0, 0, 2, ' ', 0)
+				fmt.Fprintf(w, "%v\t%v\t%v\t%v\t%v\t%v\n", "Unit", "ID", "First Names", "Last Names", "E-mails", "Member Of")
+				for _, un := range exportedUnits {
+					for _, us := range un.Users.All() {
+						memberOf := []string{}
+						for _, g := range un.Groups.All() {
+							for _, member := range g.Members() {
+								if member == us.ID() {
+									memberOf = append(memberOf, g.ID())
+									continue
+								}
+							}
+						}
+						fmt.Fprintf(w, "%v\t%v\t%v\t%v\t%v\t%v\n", un.ID, us.ID(), strings.Join(us.FirstNames(), ", "), strings.Join(us.LastNames(), ", "), strings.Join(us.Emails(), ", "), strings.Join(memberOf, ", "))
+					}
+				}
+				w.Flush()
 			default:
 				cmd.PrintErrf("Invalid output format : %v", output)
 				cmd.PrintErrln()
