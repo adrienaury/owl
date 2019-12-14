@@ -261,8 +261,9 @@ create | insert, import | error                        | create object
 apply  | replace, ap    | replace object               | create object
 update | set            | replace specified attributes | error
 upsert | -              | replace specified attributes | create object
-append | add            | only add attributes          | error
+append | add            | add attributes               | error
 remove | rm             | remove attributes            | error
+delete | del            | delete object                | nothing
 
 Read verbs :
 

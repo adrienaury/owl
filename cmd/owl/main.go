@@ -6,6 +6,10 @@ import (
 	"path"
 	"strings"
 
+	"github.com/adrienaury/owl/cmd/owl/append"
+	"github.com/adrienaury/owl/cmd/owl/apply"
+	"github.com/adrienaury/owl/cmd/owl/create"
+	"github.com/adrienaury/owl/cmd/owl/delete"
 	"github.com/adrienaury/owl/cmd/owl/export"
 	"github.com/adrienaury/owl/cmd/owl/get"
 	"github.com/adrienaury/owl/cmd/owl/group"
@@ -15,8 +19,11 @@ import (
 	"github.com/adrienaury/owl/cmd/owl/password"
 	"github.com/adrienaury/owl/cmd/owl/realm"
 	"github.com/adrienaury/owl/cmd/owl/realms"
+	"github.com/adrienaury/owl/cmd/owl/remove"
 	"github.com/adrienaury/owl/cmd/owl/session"
 	"github.com/adrienaury/owl/cmd/owl/unit"
+	"github.com/adrienaury/owl/cmd/owl/update"
+	"github.com/adrienaury/owl/cmd/owl/upsert"
 	"github.com/adrienaury/owl/cmd/owl/user"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
@@ -91,6 +98,13 @@ func init() {
 	unit.InitCommand(rootCmd)
 	list.InitCommand(rootCmd)
 	get.InitCommand(rootCmd)
+	create.InitCommand(rootCmd)
+	apply.InitCommand(rootCmd)
+	update.InitCommand(rootCmd)
+	upsert.InitCommand(rootCmd)
+	append.InitCommand(rootCmd)
+	remove.InitCommand(rootCmd)
+	delete.InitCommand(rootCmd)
 	password.InitCommand(rootCmd)
 
 	user.InitCommand(rootCmd)
@@ -122,6 +136,13 @@ func initConfig() {
 	unit.SetDrivers(unitDriver, realmDriver, credentialsDriver)
 	list.SetDrivers(realmDriver, credentialsDriver, unitDriver, userDriver, groupDriver)
 	get.SetDrivers(realmDriver, credentialsDriver, unitDriver, userDriver, groupDriver)
+	create.SetDrivers(realmDriver, credentialsDriver, unitDriver, userDriver, groupDriver)
+	apply.SetDrivers(realmDriver, credentialsDriver, unitDriver, userDriver, groupDriver)
+	update.SetDrivers(realmDriver, credentialsDriver, unitDriver, userDriver, groupDriver)
+	upsert.SetDrivers(realmDriver, credentialsDriver, unitDriver, userDriver, groupDriver)
+	append.SetDrivers(realmDriver, credentialsDriver, unitDriver, userDriver, groupDriver)
+	remove.SetDrivers(realmDriver, credentialsDriver, unitDriver, userDriver, groupDriver)
+	delete.SetDrivers(realmDriver, credentialsDriver, unitDriver, userDriver, groupDriver)
 	password.SetDrivers(passwordDriver, unitDriver, realmDriver, credentialsDriver)
 
 	user.SetDrivers(userDriver, passwordDriver, unitDriver, realmDriver, credentialsDriver)
