@@ -109,6 +109,7 @@ func InitCommand(parentCmd *cobra.Command) {
 	cmd.PersistentFlags().BoolVar(&flagAllUnits, "all-units", false, "export all units")
 	parentCmd.AddCommand(cmd)
 	initUserCommand(cmd)
+	initUnitCommand(cmd)
 }
 
 func initCredentialsAndUnit(cmd *cobra.Command, args []string) {
