@@ -1,7 +1,9 @@
 package update
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -31,7 +33,30 @@ func SetDrivers(rd realm.Driver, cd credentials.Driver, und unit.Driver, usd use
 	groupDriver = gd
 }
 
-// InitCommand initialize the cli create command
+type exportedUser struct {
+	ID         string
+	FirstNames []string
+	LastNames  []string
+	Emails     []string
+}
+
+type exportedGroup struct {
+	ID      string
+	Members []string
+}
+
+type exportedUnit struct {
+	ID          string
+	Description string
+	Users       []exportedUser
+	Groups      []exportedGroup
+}
+
+type exportedStruct struct {
+	Units []exportedUnit
+}
+
+// InitCommand initialize the cli Update command
 func InitCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:              "update",
@@ -42,7 +67,48 @@ func InitCommand(parentCmd *cobra.Command) {
 		Args:             cobra.MaximumNArgs(1),
 		PersistentPreRun: initCredentialsAndUnit,
 		Run: func(cmd *cobra.Command, args []string) {
-			// TODO
+			b, err := ioutil.ReadAll(cmd.InOrStdin())
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+
+			s := exportedStruct{[]exportedUnit{}}
+			err = json.Unmarshal(b, &s)
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+
+			flagRealm := cmd.Flag("realm")
+			for _, u := range s.Units {
+				err := unitDriver.Update(unit.NewUnit(u.ID, u.Description))
+				if err != nil {
+					cmd.PrintErrln(err)
+					os.Exit(1)
+				}
+				cmd.PrintErrf("Updated unit '%v' in realm '%v'.", u.ID, flagRealm.Value)
+				cmd.PrintErrln()
+				unitDriver.Use(u.ID)
+				for _, us := range u.Users {
+					err := userDriver.Update(user.NewUser(us.ID, us.FirstNames, us.LastNames, us.Emails))
+					if err != nil {
+						cmd.PrintErrln(err)
+						os.Exit(1)
+					}
+					cmd.PrintErrf("Updated user '%v' in unit '%v' of realm '%v'.", us.ID, u.ID, flagRealm.Value)
+					cmd.PrintErrln()
+				}
+				for _, g := range u.Groups {
+					err := groupDriver.Update(group.NewGroup(g.ID, g.Members...))
+					if err != nil {
+						cmd.PrintErrln(err)
+						os.Exit(1)
+					}
+					cmd.PrintErrf("Updated group '%v' in unit '%v' of realm '%v'.", g.ID, u.ID, flagRealm.Value)
+					cmd.PrintErrln()
+				}
+			}
 		},
 	}
 	parentCmd.AddCommand(cmd)

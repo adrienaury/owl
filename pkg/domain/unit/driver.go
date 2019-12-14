@@ -1,5 +1,9 @@
 package unit
 
+import "fmt"
+
+import "strings"
+
 // Driver is the entry point of the domain that expose methods.
 type Driver struct {
 	backend Backend
@@ -39,13 +43,13 @@ func (d Driver) Create(u Unit) error {
 
 // Apply new attributes to an existing unit, or create a new one.
 func (d Driver) Apply(u Unit) (bool, error) {
-	user, err := d.backend.GetUnit(u.ID())
+	unit, err := d.backend.GetUnit(u.ID())
 	if err != nil {
 		return false, err
 	}
 
 	exists := false
-	if user != nil {
+	if unit != nil {
 		exists = true
 		err = d.backend.UpdateUnit(u)
 	} else {
@@ -57,6 +61,31 @@ func (d Driver) Apply(u Unit) (bool, error) {
 	}
 
 	return exists, nil
+}
+
+// Update the unit with id.
+func (d Driver) Update(u Unit) error {
+	unit, err := d.backend.GetUnit(u.ID())
+	if err != nil {
+		return err
+	}
+
+	if unit == nil {
+		return fmt.Errorf("unit %v doesn't exist", u.ID())
+	}
+
+	description := u.Description()
+	if strings.TrimSpace(description) == "" {
+		description = unit.Description()
+	}
+	merged := NewUnit(u.ID(), description)
+
+	err = d.backend.UpdateUnit(merged)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Delete the unit with id.

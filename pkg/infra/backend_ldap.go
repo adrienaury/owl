@@ -292,15 +292,9 @@ func (b BackendLDAP) UpdateUser(u user.User) error {
 	dn := "cn=" + u.ID() + ",ou=users,ou=" + b.unit + "," + b.baseDN
 
 	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
-	if len(u.FirstNames()) > 0 {
-		modRequest.Replace("givenName", u.FirstNames())
-	}
-	if len(u.LastNames()) > 0 {
-		modRequest.Replace("sn", u.LastNames())
-	}
-	if len(u.Emails()) > 0 {
-		modRequest.Replace("mail", u.Emails())
-	}
+	modRequest.Replace("givenName", u.FirstNames())
+	modRequest.Replace("sn", u.LastNames())
+	modRequest.Replace("mail", u.Emails())
 
 	err := b.conn.Modify(modRequest)
 	if err != nil {
@@ -463,9 +457,7 @@ func (b BackendLDAP) UpdateGroup(g group.Group) error {
 	}
 
 	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
-	if len(g.Members()) > 0 {
-		modRequest.Replace("uniqueMember", members)
-	}
+	modRequest.Replace("uniqueMember", members)
 
 	err := b.conn.Modify(modRequest)
 	if err != nil {

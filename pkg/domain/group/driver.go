@@ -1,5 +1,7 @@
 package group
 
+import "fmt"
+
 // Driver is the entry point of the domain that expose methods.
 type Driver struct {
 	backend Backend
@@ -57,6 +59,32 @@ func (d Driver) Apply(g Group) (bool, error) {
 	}
 
 	return exists, nil
+}
+
+// Update the group with id.
+func (d Driver) Update(g Group) error {
+	group, err := d.backend.GetGroup(g.ID())
+	if err != nil {
+		return err
+	}
+
+	if group == nil {
+		return fmt.Errorf("group %v doesn't exist", g.ID())
+	}
+
+	members := g.Members()
+	if len(members) == 0 {
+		members = group.Members()
+	}
+
+	merged := NewGroup(g.ID(), members...)
+
+	err = d.backend.UpdateGroup(merged)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Delete the group with id.
