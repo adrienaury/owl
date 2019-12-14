@@ -52,7 +52,7 @@ func InitCommand(parentCmd *cobra.Command) {
 		Use:              "list",
 		Short:            "List objects",
 		Long:             "",
-		Aliases:          []string{"ls, export"},
+		Aliases:          []string{"ls", "export"},
 		Example:          fmt.Sprintf("  %[1]s list", parentCmd.Root().Name()),
 		Args:             cobra.MaximumNArgs(1),
 		PersistentPreRun: initCredentialsAndUnit,
