@@ -9,7 +9,9 @@ import (
 	"github.com/adrienaury/owl/cmd/owl/export"
 	"github.com/adrienaury/owl/cmd/owl/group"
 	"github.com/adrienaury/owl/cmd/owl/imprt"
+	"github.com/adrienaury/owl/cmd/owl/login"
 	"github.com/adrienaury/owl/cmd/owl/realm"
+	"github.com/adrienaury/owl/cmd/owl/realms"
 	"github.com/adrienaury/owl/cmd/owl/session"
 	"github.com/adrienaury/owl/cmd/owl/unit"
 	"github.com/adrienaury/owl/cmd/owl/user"
@@ -81,6 +83,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&flagUnit, "unit", "", "target unit")
 
 	realm.InitCommand(rootCmd)
+	realms.InitCommand(rootCmd)
+	login.InitCommand(rootCmd)
 	unit.InitCommand(rootCmd)
 	user.InitCommand(rootCmd)
 	group.InitCommand(rootCmd)
@@ -105,14 +109,16 @@ func initConfig() {
 	passwordDriver := newPasswordDriver(&backend)
 	groupDriver := newGroupDriver(&backend)
 
-	realm.SetDrivers(realmDriver, credentialsDriver)
+	realm.SetDrivers(realmDriver)
+	realms.SetDrivers(realmDriver)
+	login.SetDrivers(realmDriver, credentialsDriver)
 	unit.SetDrivers(unitDriver, realmDriver, credentialsDriver)
 	user.SetDrivers(userDriver, passwordDriver, unitDriver, realmDriver, credentialsDriver)
 	group.SetDrivers(groupDriver, unitDriver, realmDriver, credentialsDriver)
 	export.SetDrivers(groupDriver, userDriver, unitDriver, realmDriver, credentialsDriver)
 	imprt.SetDrivers(groupDriver, userDriver, unitDriver, realmDriver, credentialsDriver)
 
-	realm.SetSession(globalSession)
+	login.SetSession(globalSession)
 	unit.SetSession(globalSession)
 }
 

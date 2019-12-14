@@ -1,20 +1,39 @@
-package realm
+package login
 
 import (
 	"fmt"
 	"os"
 
+	"github.com/adrienaury/owl/cmd/owl/session"
 	"github.com/adrienaury/owl/pkg/domain/credentials"
+	"github.com/adrienaury/owl/pkg/domain/realm"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-// initLoginCommand implements the cli realm set command
-func initLoginCommand(parentCmd *cobra.Command) {
-	cmd := &cobra.Command{
-		Use:     "login [ID]",
-		Short:   "Login to the realm, --realm option will be implied on next commands",
-		Long:    "",
+var (
+	globalSession     *session.Session
+	realmDriver       realm.Driver
+	credentialsDriver credentials.Driver
+)
+
+// SetDrivers inject required domain drivers in the command.
+func SetDrivers(r realm.Driver, c credentials.Driver) {
+	realmDriver = r
+	credentialsDriver = c
+}
+
+// SetSession inject the global session in the command.
+func SetSession(s *session.Session) {
+	globalSession = s
+}
+
+// InitCommand initialize the cli login command
+func InitCommand(parentCmd *cobra.Command) {
+	loginCmd := &cobra.Command{
+		Use:     "login [ID or URL]",
+		Short:   "Login to realm",
+		Long:    "Login to realm which means --realm option will be implied on next commands.",
 		Example: fmt.Sprintf("  %[1]s realm login dev", parentCmd.Root().Name()),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
@@ -85,7 +104,7 @@ func initLoginCommand(parentCmd *cobra.Command) {
 			cmd.PrintErrln()
 		},
 	}
-	parentCmd.AddCommand(cmd)
+	parentCmd.AddCommand(loginCmd)
 }
 
 func askPassword(cmd *cobra.Command) string {

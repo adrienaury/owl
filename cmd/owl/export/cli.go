@@ -49,7 +49,7 @@ type exportedStruct struct {
 func InitCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:     "export [arguments ...]",
-		Short:   "Export all objects from a unit",
+		Short:   "Export objects",
 		Long:    "",
 		Example: fmt.Sprintf(`  %[1]s export`, parentCmd.Root().Name()),
 		Args:    cobra.NoArgs,
