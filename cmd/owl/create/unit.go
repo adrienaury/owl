@@ -27,8 +27,12 @@ func initUnitCommand(parentCmd *cobra.Command) {
 		Run: func(cmd *cobra.Command, args []string) {
 			units := []singleUnit{}
 
-			if len(args) > 1 {
-				units = append(units, singleUnit{args[0], args[1]})
+			if len(args) > 0 {
+				description := ""
+				if len(args) > 1 {
+					description = args[1]
+				}
+				units = append(units, singleUnit{args[0], description})
 			} else {
 				b, err := ioutil.ReadAll(cmd.InOrStdin())
 				if err != nil {

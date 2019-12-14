@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -22,21 +21,12 @@ func initGroupCommand(parentCmd *cobra.Command) {
 		Run: func(cmd *cobra.Command, args []string) {
 			groups := []exportedGroup{}
 
-			if len(args) > 1 {
-				g := exportedGroup{}
-				g.ID = args[0]
-				for _, arg := range args[1:] {
-					argparts := strings.Split(arg, "=")
-					if len(argparts) == 2 {
-						if argparts[0] == "member" {
-							g.Members = append(g.Members, argparts[1])
-						} else {
-							cmd.PrintErrln("Invalid attribute:", argparts[0])
-							os.Exit(1)
-						}
-					}
+			if len(args) > 0 {
+				for _, arg := range args {
+					g := exportedGroup{}
+					g.ID = arg
+					groups = append(groups, g)
 				}
-				groups = append(groups, g)
 			} else {
 				b, err := ioutil.ReadAll(cmd.InOrStdin())
 				if err != nil {

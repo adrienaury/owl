@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -23,25 +22,11 @@ func initUserCommand(parentCmd *cobra.Command) {
 			users := []exportedUser{}
 
 			if len(args) > 0 {
-				u := exportedUser{}
-				u.ID = args[0]
-				for _, arg := range args[1:] {
-					argparts := strings.Split(arg, "=")
-					if len(argparts) == 2 {
-						switch argparts[0] {
-						case "firstname":
-							u.FirstNames = append(u.FirstNames, argparts[1])
-						case "lastname":
-							u.LastNames = append(u.LastNames, argparts[1])
-						case "email":
-							u.Emails = append(u.Emails, argparts[1])
-						default:
-							cmd.PrintErrln("Invalid attribute:", argparts[0])
-							os.Exit(1)
-						}
-					}
+				for _, arg := range args {
+					u := exportedUser{}
+					u.ID = arg
+					users = append(users, u)
 				}
-				users = append(users, u)
 			} else {
 				b, err := ioutil.ReadAll(cmd.InOrStdin())
 				if err != nil {

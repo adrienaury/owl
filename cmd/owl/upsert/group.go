@@ -23,7 +23,7 @@ func initGroupCommand(parentCmd *cobra.Command) {
 		Run: func(cmd *cobra.Command, args []string) {
 			groups := []exportedGroup{}
 
-			if len(args) > 1 {
+			if len(args) > 0 {
 				g := exportedGroup{}
 				g.ID = args[0]
 				for _, arg := range args[1:] {
