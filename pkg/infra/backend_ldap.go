@@ -29,16 +29,22 @@ func NewBackendLDAP() BackendLDAP {
 }
 
 // OpenConnection connect to the LDAP server with given credentials.
-func (b *BackendLDAP) OpenConnection(c credentials.Credentials) (err error) {
+func (b *BackendLDAP) OpenConnection(c credentials.Credentials) error {
 	if b.conn != nil {
 		b.conn.Close()
 	}
 	u, _ := url.Parse(c.URL())
 	b.baseDN = strings.Trim(u.EscapedPath(), "/")
-	b.conn, err = b.initConnection(c)
+	conn, err := b.initConnection(c)
+	if err != nil {
+		return err
+	}
+
+	b.conn = conn
 	if !b.authenticateToServer(c, b.conn) {
 		return fmt.Errorf("invalid credentials")
 	}
+
 	return err
 }
 

@@ -20,7 +20,7 @@ func SetDrivers(r realm.Driver) {
 // InitCommand initialize the cli realm command
 func InitCommand(parentCmd *cobra.Command) {
 	realmCmd := &cobra.Command{
-		Use:     "realm [ID] [URL] [User]",
+		Use:     "realm ID URL USERNAME",
 		Short:   "Configure realms",
 		Long:    "",
 		Example: fmt.Sprintf("  %[1]s realm dev ldap://dev.my-company.com/dc=example,dc=com username", parentCmd.Root().Name()),

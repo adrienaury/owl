@@ -179,10 +179,10 @@ The special `default` unit is selected if `owl unit` is never used before. You c
 
 ```console
 $ owl unit default
-Using default unit.
+Using default unit for next commands.
 
 $ owl unit -
-Using default unit.
+Using default unit for next commands.
 ```
 
 ##### Manage users
