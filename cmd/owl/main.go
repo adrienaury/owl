@@ -10,10 +10,7 @@ import (
 	"github.com/adrienaury/owl/cmd/owl/apply"
 	"github.com/adrienaury/owl/cmd/owl/create"
 	"github.com/adrienaury/owl/cmd/owl/delete"
-	"github.com/adrienaury/owl/cmd/owl/export"
 	"github.com/adrienaury/owl/cmd/owl/get"
-	"github.com/adrienaury/owl/cmd/owl/group"
-	"github.com/adrienaury/owl/cmd/owl/imprt"
 	"github.com/adrienaury/owl/cmd/owl/list"
 	"github.com/adrienaury/owl/cmd/owl/login"
 	"github.com/adrienaury/owl/cmd/owl/password"
@@ -24,7 +21,6 @@ import (
 	"github.com/adrienaury/owl/cmd/owl/unit"
 	"github.com/adrienaury/owl/cmd/owl/update"
 	"github.com/adrienaury/owl/cmd/owl/upsert"
-	"github.com/adrienaury/owl/cmd/owl/user"
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
@@ -106,11 +102,6 @@ func init() {
 	remove.InitCommand(rootCmd)
 	delete.InitCommand(rootCmd)
 	password.InitCommand(rootCmd)
-
-	user.InitCommand(rootCmd)
-	group.InitCommand(rootCmd)
-	export.InitCommand(rootCmd)
-	imprt.InitCommand(rootCmd)
 }
 
 func initConfig() {
@@ -144,11 +135,6 @@ func initConfig() {
 	remove.SetDrivers(realmDriver, credentialsDriver, unitDriver, userDriver, groupDriver)
 	delete.SetDrivers(realmDriver, credentialsDriver, unitDriver, userDriver, groupDriver)
 	password.SetDrivers(passwordDriver, unitDriver, realmDriver, credentialsDriver)
-
-	user.SetDrivers(userDriver, passwordDriver, unitDriver, realmDriver, credentialsDriver)
-	group.SetDrivers(groupDriver, unitDriver, realmDriver, credentialsDriver)
-	export.SetDrivers(groupDriver, userDriver, unitDriver, realmDriver, credentialsDriver)
-	imprt.SetDrivers(groupDriver, userDriver, unitDriver, realmDriver, credentialsDriver)
 
 	login.SetSession(globalSession)
 	unit.SetSession(globalSession)
