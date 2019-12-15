@@ -40,9 +40,17 @@ type exportedUser struct {
 	Emails     []string
 }
 
+type exportedUsers struct {
+	Users []exportedUser
+}
+
 type exportedGroup struct {
 	ID      string
 	Members []string
+}
+
+type exportedGroups struct {
+	Groups []exportedGroup
 }
 
 type exportedUnit struct {
@@ -52,8 +60,48 @@ type exportedUnit struct {
 	Groups      []exportedGroup
 }
 
-type exportedStruct struct {
+type exportedUnits struct {
 	Units []exportedUnit
+}
+
+func deleteGroups(cmd *cobra.Command, groups []exportedGroup, realmID, unitID string) {
+	unitDriver.Use(unitID)
+	for _, g := range groups {
+		err := groupDriver.Delete(g.ID)
+		if err != nil {
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
+		cmd.PrintErrf("Deleted group '%v' in unit '%v' of realm '%v'.", g.ID, unitID, realmID)
+		cmd.PrintErrln()
+	}
+}
+
+func deleteUsers(cmd *cobra.Command, users []exportedUser, realmID, unitID string) {
+	unitDriver.Use(unitID)
+	for _, u := range users {
+		err := userDriver.Delete(u.ID)
+		if err != nil {
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
+		cmd.PrintErrf("Deleted user '%v' in unit '%v' of realm '%v'.", u.ID, unitID, realmID)
+		cmd.PrintErrln()
+	}
+}
+
+func deleteUnits(cmd *cobra.Command, units []exportedUnit, realmID string) {
+	for _, u := range units {
+		err := unitDriver.Delete(u.ID)
+		if err != nil {
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
+		cmd.PrintErrf("Deleted unit '%v' in realm '%v'.", u.ID, realmID)
+		cmd.PrintErrln()
+		deleteUsers(cmd, u.Users, realmID, u.ID)
+		deleteGroups(cmd, u.Groups, realmID, u.ID)
+	}
 }
 
 // InitCommand initialize the cli delete command
@@ -73,42 +121,37 @@ func InitCommand(parentCmd *cobra.Command) {
 				os.Exit(1)
 			}
 
-			s := exportedStruct{[]exportedUnit{}}
-			err = json.Unmarshal(b, &s)
+			realmID := cmd.Flag("realm").Value.String()
+			unitID := cmd.Flag("unit").Value.String()
+
+			format1 := exportedUnits{}
+			format2 := exportedUsers{}
+			format3 := exportedGroups{}
+
+			err = json.Unmarshal(b, &format1)
+			if err == nil && len(format1.Units) > 0 {
+				deleteUnits(cmd, format1.Units, realmID)
+				return
+			}
+
+			err = json.Unmarshal(b, &format2)
+			if err == nil && len(format2.Users) > 0 {
+				deleteUsers(cmd, format2.Users, realmID, unitID)
+				return
+			}
+
+			err = json.Unmarshal(b, &format3)
+			if err == nil && len(format3.Groups) > 0 {
+				deleteGroups(cmd, format3.Groups, realmID, unitID)
+				return
+			}
+
 			if err != nil {
 				cmd.PrintErrln(err)
 				os.Exit(1)
 			}
 
-			flagRealm := cmd.Flag("realm")
-			for _, u := range s.Units {
-				err := unitDriver.Delete(u.ID)
-				if err != nil {
-					cmd.PrintErrln(err)
-					os.Exit(1)
-				}
-				cmd.PrintErrf("Deleted unit '%v' in realm '%v'.", u.ID, flagRealm.Value)
-				cmd.PrintErrln()
-				unitDriver.Use(u.ID)
-				for _, us := range u.Users {
-					err := userDriver.Delete(us.ID)
-					if err != nil {
-						cmd.PrintErrln(err)
-						os.Exit(1)
-					}
-					cmd.PrintErrf("Deleted user '%v' in unit '%v' of realm '%v'.", us.ID, u.ID, flagRealm.Value)
-					cmd.PrintErrln()
-				}
-				for _, g := range u.Groups {
-					err := groupDriver.Delete(g.ID)
-					if err != nil {
-						cmd.PrintErrln(err)
-						os.Exit(1)
-					}
-					cmd.PrintErrf("Deleted group '%v' in unit '%v' of realm '%v'.", g.ID, u.ID, flagRealm.Value)
-					cmd.PrintErrln()
-				}
-			}
+			cmd.PrintErrln("No valid data.")
 		},
 	}
 	parentCmd.AddCommand(cmd)

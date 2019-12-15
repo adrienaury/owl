@@ -31,9 +31,17 @@ type exportedUser struct {
 	Emails     []string
 }
 
+type exportedUsers struct {
+	Users []exportedUser
+}
+
 type exportedGroup struct {
 	ID      string
 	Members []string
+}
+
+type exportedGroups struct {
+	Groups []exportedGroup
 }
 
 type exportedUnit struct {
@@ -43,7 +51,7 @@ type exportedUnit struct {
 	Groups      []exportedGroup
 }
 
-type exportedStruct struct {
+type exportedUnits struct {
 	Units []exportedUnit
 }
 
@@ -54,6 +62,58 @@ func SetDrivers(rd realm.Driver, cd credentials.Driver, und unit.Driver, usd use
 	unitDriver = und
 	userDriver = usd
 	groupDriver = gd
+}
+
+func importGroups(cmd *cobra.Command, groups []exportedGroup, realmID, unitID string) {
+	unitDriver.Use(unitID)
+	for _, g := range groups {
+		modified, err := groupDriver.Apply(group.NewGroup(g.ID, g.Members...))
+		if err != nil {
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
+		if modified {
+			cmd.PrintErrf("Replaced group '%v' in unit '%v' of realm '%v'.", g.ID, unitID, realmID)
+		} else {
+			cmd.PrintErrf("Created group '%v' in unit '%v' of realm '%v'.", g.ID, unitID, realmID)
+		}
+		cmd.PrintErrln()
+	}
+}
+
+func importUsers(cmd *cobra.Command, users []exportedUser, realmID, unitID string) {
+	unitDriver.Use(unitID)
+	for _, u := range users {
+		modified, err := userDriver.Apply(user.NewUser(u.ID, u.FirstNames, u.LastNames, u.Emails))
+		if err != nil {
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
+		if modified {
+			cmd.PrintErrf("Replaced user '%v' in unit '%v' of realm '%v'.", u.ID, unitID, realmID)
+		} else {
+			cmd.PrintErrf("Created user '%v' in unit '%v' of realm '%v'.", u.ID, unitID, realmID)
+		}
+		cmd.PrintErrln()
+	}
+}
+
+func importUnits(cmd *cobra.Command, units []exportedUnit, realmID string) {
+	for _, u := range units {
+		modified, err := unitDriver.Apply(unit.NewUnit(u.ID, u.Description))
+		if err != nil {
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
+		if modified {
+			cmd.PrintErrf("Replaced unit '%v' in realm '%v'.", u.ID, realmID)
+		} else {
+			cmd.PrintErrf("Created unit '%v' in realm '%v'.", u.ID, realmID)
+		}
+		cmd.PrintErrln()
+		importUsers(cmd, u.Users, realmID, u.ID)
+		importGroups(cmd, u.Groups, realmID, u.ID)
+	}
 }
 
 // InitCommand initialize the cli create command
@@ -73,54 +133,37 @@ func InitCommand(parentCmd *cobra.Command) {
 				os.Exit(1)
 			}
 
-			s := exportedStruct{[]exportedUnit{}}
-			err = json.Unmarshal(b, &s)
+			realmID := cmd.Flag("realm").Value.String()
+			unitID := cmd.Flag("unit").Value.String()
+
+			format1 := exportedUnits{}
+			format2 := exportedUsers{}
+			format3 := exportedGroups{}
+
+			err = json.Unmarshal(b, &format1)
+			if err == nil && len(format1.Units) > 0 {
+				importUnits(cmd, format1.Units, realmID)
+				return
+			}
+
+			err = json.Unmarshal(b, &format2)
+			if err == nil && len(format2.Users) > 0 {
+				importUsers(cmd, format2.Users, realmID, unitID)
+				return
+			}
+
+			err = json.Unmarshal(b, &format3)
+			if err == nil && len(format3.Groups) > 0 {
+				importGroups(cmd, format3.Groups, realmID, unitID)
+				return
+			}
+
 			if err != nil {
 				cmd.PrintErrln(err)
 				os.Exit(1)
 			}
 
-			flagRealm := cmd.Flag("realm")
-			for _, u := range s.Units {
-				modified, err := unitDriver.Apply(unit.NewUnit(u.ID, u.Description))
-				if err != nil {
-					cmd.PrintErrln(err)
-					os.Exit(1)
-				}
-				if modified {
-					cmd.PrintErrf("Replaced unit '%v' in realm '%v'.", u.ID, flagRealm.Value)
-				} else {
-					cmd.PrintErrf("Created unit '%v' in realm '%v'.", u.ID, flagRealm.Value)
-				}
-				cmd.PrintErrln()
-				unitDriver.Use(u.ID)
-				for _, us := range u.Users {
-					modified, err := userDriver.Apply(user.NewUser(us.ID, us.FirstNames, us.LastNames, us.Emails))
-					if err != nil {
-						cmd.PrintErrln(err)
-						os.Exit(1)
-					}
-					if modified {
-						cmd.PrintErrf("Replaced user '%v' in unit '%v' of realm '%v'.", us.ID, u.ID, flagRealm.Value)
-					} else {
-						cmd.PrintErrf("Created user '%v' in unit '%v' of realm '%v'.", us.ID, u.ID, flagRealm.Value)
-					}
-					cmd.PrintErrln()
-				}
-				for _, g := range u.Groups {
-					modified, err := groupDriver.Apply(group.NewGroup(g.ID, g.Members...))
-					if err != nil {
-						cmd.PrintErrln(err)
-						os.Exit(1)
-					}
-					if modified {
-						cmd.PrintErrf("Replaced group '%v' in unit '%v' of realm '%v'.", g.ID, u.ID, flagRealm.Value)
-					} else {
-						cmd.PrintErrf("Created group '%v' in unit '%v' of realm '%v'.", g.ID, u.ID, flagRealm.Value)
-					}
-					cmd.PrintErrln()
-				}
-			}
+			cmd.PrintErrln("No valid data.")
 		},
 	}
 	parentCmd.AddCommand(cmd)

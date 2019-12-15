@@ -40,9 +40,17 @@ type exportedUser struct {
 	Emails     []string
 }
 
+type exportedUsers struct {
+	Users []exportedUser
+}
+
 type exportedGroup struct {
 	ID      string
 	Members []string
+}
+
+type exportedGroups struct {
+	Groups []exportedGroup
 }
 
 type exportedUnit struct {
@@ -52,8 +60,48 @@ type exportedUnit struct {
 	Groups      []exportedGroup
 }
 
-type exportedStruct struct {
+type exportedUnits struct {
 	Units []exportedUnit
+}
+
+func updateGroups(cmd *cobra.Command, groups []exportedGroup, realmID, unitID string) {
+	unitDriver.Use(unitID)
+	for _, g := range groups {
+		err := groupDriver.Update(group.NewGroup(g.ID, g.Members...))
+		if err != nil {
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
+		cmd.PrintErrf("Updated group '%v' in unit '%v' of realm '%v'.", g.ID, unitID, realmID)
+		cmd.PrintErrln()
+	}
+}
+
+func updateUsers(cmd *cobra.Command, users []exportedUser, realmID, unitID string) {
+	unitDriver.Use(unitID)
+	for _, u := range users {
+		err := userDriver.Update(user.NewUser(u.ID, u.FirstNames, u.LastNames, u.Emails))
+		if err != nil {
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
+		cmd.PrintErrf("Updated user '%v' in unit '%v' of realm '%v'.", u.ID, unitID, realmID)
+		cmd.PrintErrln()
+	}
+}
+
+func updateUnits(cmd *cobra.Command, units []exportedUnit, realmID string) {
+	for _, u := range units {
+		err := unitDriver.Update(unit.NewUnit(u.ID, u.Description))
+		if err != nil {
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
+		cmd.PrintErrf("Updated unit '%v' in realm '%v'.", u.ID, realmID)
+		cmd.PrintErrln()
+		updateUsers(cmd, u.Users, realmID, u.ID)
+		updateGroups(cmd, u.Groups, realmID, u.ID)
+	}
 }
 
 // InitCommand initialize the cli Update command
@@ -73,42 +121,37 @@ func InitCommand(parentCmd *cobra.Command) {
 				os.Exit(1)
 			}
 
-			s := exportedStruct{[]exportedUnit{}}
-			err = json.Unmarshal(b, &s)
+			realmID := cmd.Flag("realm").Value.String()
+			unitID := cmd.Flag("unit").Value.String()
+
+			format1 := exportedUnits{}
+			format2 := exportedUsers{}
+			format3 := exportedGroups{}
+
+			err = json.Unmarshal(b, &format1)
+			if err == nil && len(format1.Units) > 0 {
+				updateUnits(cmd, format1.Units, realmID)
+				return
+			}
+
+			err = json.Unmarshal(b, &format2)
+			if err == nil && len(format2.Users) > 0 {
+				updateUsers(cmd, format2.Users, realmID, unitID)
+				return
+			}
+
+			err = json.Unmarshal(b, &format3)
+			if err == nil && len(format3.Groups) > 0 {
+				updateGroups(cmd, format3.Groups, realmID, unitID)
+				return
+			}
+
 			if err != nil {
 				cmd.PrintErrln(err)
 				os.Exit(1)
 			}
 
-			flagRealm := cmd.Flag("realm")
-			for _, u := range s.Units {
-				err := unitDriver.Update(unit.NewUnit(u.ID, u.Description))
-				if err != nil {
-					cmd.PrintErrln(err)
-					os.Exit(1)
-				}
-				cmd.PrintErrf("Updated unit '%v' in realm '%v'.", u.ID, flagRealm.Value)
-				cmd.PrintErrln()
-				unitDriver.Use(u.ID)
-				for _, us := range u.Users {
-					err := userDriver.Update(user.NewUser(us.ID, us.FirstNames, us.LastNames, us.Emails))
-					if err != nil {
-						cmd.PrintErrln(err)
-						os.Exit(1)
-					}
-					cmd.PrintErrf("Updated user '%v' in unit '%v' of realm '%v'.", us.ID, u.ID, flagRealm.Value)
-					cmd.PrintErrln()
-				}
-				for _, g := range u.Groups {
-					err := groupDriver.Update(group.NewGroup(g.ID, g.Members...))
-					if err != nil {
-						cmd.PrintErrln(err)
-						os.Exit(1)
-					}
-					cmd.PrintErrf("Updated group '%v' in unit '%v' of realm '%v'.", g.ID, u.ID, flagRealm.Value)
-					cmd.PrintErrln()
-				}
-			}
+			cmd.PrintErrln("No valid data.")
 		},
 	}
 	parentCmd.AddCommand(cmd)
