@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Changed` Usage of `unit` command is simplified, ex: `owl unit use` becomes `owl unit` (#6)
 - `Added` New verbs (`update`, `upsert`, `append`, `remove`, `get`) and aliases (#6)
 - `Added` Unit selection is now optional, use `owl unit -` or `owl unit default` to unselect current unit (#6)
+- `Added` Configuration for LDAP backend via environment variables (`OWL_BACKEND_SUBUNIT=false` to disable subunits, `OWL_BACKEND_SUBUNIT_USER` and `OWL_BACKEND_SUBUNIT_GROUP` to customize subunits names)
 
 ## 0.1.0 "MVP"
 
