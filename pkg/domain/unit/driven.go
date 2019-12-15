@@ -7,6 +7,7 @@ type Backend interface {
 	CreateUnit(Unit) error
 	UpdateUnit(Unit) error
 	AppendUnit(Unit) error
+	RemoveUnit(Unit) error
 	DeleteUnit(id string) error
 	UseUnit(id string)
 }

@@ -144,6 +144,15 @@ func (d Driver) Append(u User) error {
 	return nil
 }
 
+// Remove attributes from the user with id.
+func (d Driver) Remove(u User) error {
+	err := d.backend.RemoveUser(u)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Delete the user with id.
 func (d Driver) Delete(id string) error {
 	err := d.backend.DeleteUser(id)

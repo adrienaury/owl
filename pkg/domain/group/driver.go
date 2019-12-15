@@ -131,9 +131,9 @@ func (d Driver) Append(g Group) error {
 	return nil
 }
 
-// RemoveMembers from the group with id.
-func (d Driver) RemoveMembers(id string, memberIDs ...string) error {
-	err := d.backend.RemoveFromGroup(id, memberIDs...)
+// Remove attributes (members) from the group with id.
+func (d Driver) Remove(g Group) error {
+	err := d.backend.RemoveGroup(g)
 	if err != nil {
 		return err
 	}

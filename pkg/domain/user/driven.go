@@ -7,5 +7,6 @@ type Backend interface {
 	CreateUser(User) error
 	UpdateUser(User) error
 	AppendUser(User) error
+	RemoveUser(User) error
 	DeleteUser(id string) error
 }

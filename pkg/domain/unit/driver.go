@@ -123,6 +123,15 @@ func (d Driver) Append(u Unit) error {
 	return nil
 }
 
+// Remove attributes from the unit with id.
+func (d Driver) Remove(u Unit) error {
+	err := d.backend.RemoveUnit(u)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Delete the unit with id.
 func (d Driver) Delete(id string) error {
 	err := d.backend.DeleteUnit(id)

@@ -190,6 +190,21 @@ func (b BackendLDAP) AppendUnit(u unit.Unit) error {
 	return nil
 }
 
+// RemoveUnit remove attributes from the unit with id.
+func (b BackendLDAP) RemoveUnit(u unit.Unit) error {
+	dn := "ou=" + u.ID() + "," + b.baseDN
+
+	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
+	// nothing to remove on this object
+
+	err := b.conn.Modify(modRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DeleteUnit deletes a unit.
 func (b BackendLDAP) DeleteUnit(id string) error {
 	dnUsers := "ou=users,ou=" + id + "," + b.baseDN
@@ -353,6 +368,33 @@ func (b BackendLDAP) AppendUser(u user.User) error {
 	}
 	if len(u.Emails()) > 0 {
 		modRequest.Add("mail", u.Emails())
+	}
+
+	err := b.conn.Modify(modRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RemoveUser remove attributes from the user with id.
+func (b BackendLDAP) RemoveUser(u user.User) error {
+	if strings.TrimSpace(b.unit) == "" {
+		return fmt.Errorf("no unit selected")
+	}
+
+	dn := "cn=" + u.ID() + ",ou=users,ou=" + b.unit + "," + b.baseDN
+
+	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
+	if len(u.FirstNames()) > 0 {
+		modRequest.Delete("givenName", u.FirstNames())
+	}
+	if len(u.LastNames()) > 0 {
+		modRequest.Delete("sn", u.LastNames())
+	}
+	if len(u.Emails()) > 0 {
+		modRequest.Delete("mail", u.Emails())
 	}
 
 	err := b.conn.Modify(modRequest)
@@ -551,16 +593,16 @@ func (b BackendLDAP) AppendGroup(g group.Group) error {
 	return nil
 }
 
-// RemoveFromGroup remove members from the group with id.
-func (b BackendLDAP) RemoveFromGroup(id string, memberIDs ...string) error {
+// RemoveGroup remove attributes from the group with id.
+func (b BackendLDAP) RemoveGroup(g group.Group) error {
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
 	}
 
-	dn := "cn=" + id + ",ou=groups,ou=" + b.unit + "," + b.baseDN
+	dn := "cn=" + g.ID() + ",ou=groups,ou=" + b.unit + "," + b.baseDN
 
 	members := []string{}
-	for _, member := range memberIDs {
+	for _, member := range g.Members() {
 		members = append(members, "cn="+member+",ou=users,ou="+b.unit+","+b.baseDN)
 	}
 
