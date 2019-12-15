@@ -1,5 +1,10 @@
 package unit
 
+import (
+	"fmt"
+	"strings"
+)
+
 // Driver is the entry point of the domain that expose methods.
 type Driver struct {
 	backend Backend
@@ -38,14 +43,14 @@ func (d Driver) Create(u Unit) error {
 }
 
 // Apply new attributes to an existing unit, or create a new one.
-func (d Driver) Apply(u Unit) (bool, error) {
-	user, err := d.backend.GetUnit(u.ID())
+func (d Driver) Apply(u Unit) (updated bool, err error) {
+	unit, err := d.backend.GetUnit(u.ID())
 	if err != nil {
 		return false, err
 	}
 
 	exists := false
-	if user != nil {
+	if unit != nil {
 		exists = true
 		err = d.backend.UpdateUnit(u)
 	} else {
@@ -57,6 +62,74 @@ func (d Driver) Apply(u Unit) (bool, error) {
 	}
 
 	return exists, nil
+}
+
+// Update the unit with id.
+func (d Driver) Update(u Unit) error {
+	unit, err := d.backend.GetUnit(u.ID())
+	if err != nil {
+		return err
+	}
+
+	if unit == nil {
+		return fmt.Errorf("unit %v doesn't exist", u.ID())
+	}
+
+	description := u.Description()
+	if strings.TrimSpace(description) == "" {
+		description = unit.Description()
+	}
+	merged := NewUnit(u.ID(), description)
+
+	err = d.backend.UpdateUnit(merged)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Upsert the unit with id (update or create).
+func (d Driver) Upsert(u Unit) (updated bool, err error) {
+	unit, err := d.backend.GetUnit(u.ID())
+	if err != nil {
+		return false, err
+	}
+
+	if unit == nil {
+		return false, d.Create(u)
+	}
+
+	description := u.Description()
+	if strings.TrimSpace(description) == "" {
+		description = unit.Description()
+	}
+	merged := NewUnit(u.ID(), description)
+
+	err = d.backend.UpdateUnit(merged)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// Append attributes to the unit with id.
+func (d Driver) Append(u Unit) error {
+	err := d.backend.AppendUnit(u)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Remove attributes from the unit with id.
+func (d Driver) Remove(u Unit) error {
+	err := d.backend.RemoveUnit(u)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Delete the unit with id.

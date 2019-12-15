@@ -1,5 +1,7 @@
 package group
 
+import "fmt"
+
 // Driver is the entry point of the domain that expose methods.
 type Driver struct {
 	backend Backend
@@ -38,7 +40,7 @@ func (d Driver) Create(g Group) error {
 }
 
 // Apply new attributes to an existing group, or create a new one.
-func (d Driver) Apply(g Group) (bool, error) {
+func (d Driver) Apply(g Group) (updated bool, err error) {
 	group, err := d.backend.GetGroup(g.ID())
 	if err != nil {
 		return false, err
@@ -59,6 +61,58 @@ func (d Driver) Apply(g Group) (bool, error) {
 	return exists, nil
 }
 
+// Update the group with id.
+func (d Driver) Update(g Group) error {
+	group, err := d.backend.GetGroup(g.ID())
+	if err != nil {
+		return err
+	}
+
+	if group == nil {
+		return fmt.Errorf("group %v doesn't exist", g.ID())
+	}
+
+	members := g.Members()
+	if len(members) == 0 {
+		members = group.Members()
+	}
+
+	merged := NewGroup(g.ID(), members...)
+
+	err = d.backend.UpdateGroup(merged)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Upsert the group with id (update or create).
+func (d Driver) Upsert(g Group) (updated bool, err error) {
+	group, err := d.backend.GetGroup(g.ID())
+	if err != nil {
+		return false, err
+	}
+
+	if group == nil {
+		return false, d.Create(g)
+	}
+
+	members := g.Members()
+	if len(members) == 0 {
+		members = group.Members()
+	}
+
+	merged := NewGroup(g.ID(), members...)
+
+	err = d.backend.UpdateGroup(merged)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
 // Delete the group with id.
 func (d Driver) Delete(id string) error {
 	err := d.backend.DeleteGroup(id)
@@ -68,18 +122,18 @@ func (d Driver) Delete(id string) error {
 	return nil
 }
 
-// AddMembers to the group with id.
-func (d Driver) AddMembers(id string, memberIDs ...string) error {
-	err := d.backend.AddToGroup(id, memberIDs...)
+// Append attributes (members) to the group with id.
+func (d Driver) Append(g Group) error {
+	err := d.backend.AppendGroup(g)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// RemoveMembers from the group with id.
-func (d Driver) RemoveMembers(id string, memberIDs ...string) error {
-	err := d.backend.RemoveFromGroup(id, memberIDs...)
+// Remove attributes (members) from the group with id.
+func (d Driver) Remove(g Group) error {
+	err := d.backend.RemoveGroup(g)
 	if err != nil {
 		return err
 	}

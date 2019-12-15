@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/adrienaury/owl/pkg/domain/credentials"
@@ -18,27 +19,53 @@ import (
 
 // BackendLDAP implements a backend over LDAP (OpenLDAP schema).
 type BackendLDAP struct {
-	conn   *ldap.Conn
-	baseDN string
-	unit   string
+	conn      *ldap.Conn
+	baseDN    string
+	unit      string
+	userUnit  string
+	groupUnit string
 }
 
 // NewBackendLDAP creates a new BackendLDAP.
 func NewBackendLDAP() BackendLDAP {
-	return BackendLDAP{}
+	subunit := os.Getenv("OWL_BACKEND_SUBUNIT") != "false"
+	userUnit := os.Getenv("OWL_BACKEND_SUBUNIT_USER")
+	groupUnit := os.Getenv("OWL_BACKEND_SUBUNIT_GROUP")
+	if !subunit {
+		userUnit = ""
+		groupUnit = ""
+	} else {
+		if strings.TrimSpace(userUnit) == "" {
+			userUnit = "ou=users,"
+		} else {
+			userUnit = "ou=" + userUnit + ","
+		}
+		if strings.TrimSpace(groupUnit) == "" {
+			groupUnit = "ou=groups,"
+		} else {
+			groupUnit = "ou=" + groupUnit + ","
+		}
+	}
+	return BackendLDAP{userUnit: userUnit, groupUnit: groupUnit}
 }
 
 // OpenConnection connect to the LDAP server with given credentials.
-func (b *BackendLDAP) OpenConnection(c credentials.Credentials) (err error) {
+func (b *BackendLDAP) OpenConnection(c credentials.Credentials) error {
 	if b.conn != nil {
 		b.conn.Close()
 	}
 	u, _ := url.Parse(c.URL())
 	b.baseDN = strings.Trim(u.EscapedPath(), "/")
-	b.conn, err = b.initConnection(c)
+	conn, err := b.initConnection(c)
+	if err != nil {
+		return err
+	}
+
+	b.conn = conn
 	if !b.authenticateToServer(c, b.conn) {
 		return fmt.Errorf("invalid credentials")
 	}
+
 	return err
 }
 
@@ -129,22 +156,20 @@ func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 		return err
 	}
 
-	dnUsers := "ou=users," + dn
+	dnUsers := b.userUnit + dn
 
 	addRequest = ldap.NewAddRequest(dnUsers, []ldap.Control{})
 	addRequest.Attribute("objectClass", []string{"organizationalUnit"})
-	addRequest.Attribute("ou", []string{"users"})
 
 	err = b.conn.Add(addRequest)
 	if err != nil {
 		return err
 	}
 
-	dnGroups := "ou=groups," + dn
+	dnGroups := b.groupUnit + dn
 
 	addRequest = ldap.NewAddRequest(dnGroups, []ldap.Control{})
 	addRequest.Attribute("objectClass", []string{"organizationalUnit"})
-	addRequest.Attribute("ou", []string{"groups"})
 
 	err = b.conn.Add(addRequest)
 	if err != nil {
@@ -169,16 +194,46 @@ func (b BackendLDAP) UpdateUnit(u unit.Unit) error {
 	return nil
 }
 
+// AppendUnit add attributes to the unit with id.
+func (b BackendLDAP) AppendUnit(u unit.Unit) error {
+	dn := "ou=" + u.ID() + "," + b.baseDN
+
+	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
+	// nothing to add on this object
+
+	err := b.conn.Modify(modRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RemoveUnit remove attributes from the unit with id.
+func (b BackendLDAP) RemoveUnit(u unit.Unit) error {
+	dn := "ou=" + u.ID() + "," + b.baseDN
+
+	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
+	// nothing to remove on this object
+
+	err := b.conn.Modify(modRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DeleteUnit deletes a unit.
 func (b BackendLDAP) DeleteUnit(id string) error {
-	dnUsers := "ou=users,ou=" + id + "," + b.baseDN
+	dnUsers := b.userUnit + "ou=" + id + "," + b.baseDN
 	delRequest := ldap.NewDelRequest(dnUsers, []ldap.Control{})
 	err := b.conn.Del(delRequest)
 	if err != nil && !ldap.IsErrorWithCode(err, 32) {
 		return err
 	}
 
-	dnGroups := "ou=groups,ou=" + id + "," + b.baseDN
+	dnGroups := b.groupUnit + "ou=" + id + "," + b.baseDN
 	delRequest = ldap.NewDelRequest(dnGroups, []ldap.Control{})
 	err = b.conn.Del(delRequest)
 	if err != nil && !ldap.IsErrorWithCode(err, 32) {
@@ -197,11 +252,14 @@ func (b BackendLDAP) DeleteUnit(id string) error {
 
 // ListUsers list all users contained in the LDAP server.
 func (b BackendLDAP) ListUsers() (user.List, error) {
+	var searchDN string
 	if strings.TrimSpace(b.unit) == "" {
-		return nil, fmt.Errorf("no unit selected")
+		searchDN = b.userUnit + b.baseDN
+	} else {
+		searchDN = b.userUnit + "ou=" + b.unit + "," + b.baseDN
 	}
 
-	sr, err := b.search("ou=users,ou="+b.unit+","+b.baseDN, "(objectClass=inetOrgPerson)", "cn", "givenName", "sn", "mail")
+	sr, err := b.search(searchDN, "(objectClass=inetOrgPerson)", "cn", "givenName", "sn", "mail")
 	if err != nil {
 		return nil, err
 	}
@@ -221,11 +279,14 @@ func (b BackendLDAP) ListUsers() (user.List, error) {
 
 // GetUser returns a specific user with id.
 func (b BackendLDAP) GetUser(id string) (user.User, error) {
+	var searchDN string
 	if strings.TrimSpace(b.unit) == "" {
-		return nil, fmt.Errorf("no unit selected")
+		searchDN = b.userUnit + b.baseDN
+	} else {
+		searchDN = b.userUnit + "ou=" + b.unit + "," + b.baseDN
 	}
 
-	sr, err := b.search("ou=users,ou="+b.unit+","+b.baseDN, "(cn="+id+")", "cn", "givenName", "sn", "mail")
+	sr, err := b.search(searchDN, "(cn="+id+")", "cn", "givenName", "sn", "mail")
 	if err != nil {
 		return nil, err
 	}
@@ -250,11 +311,12 @@ func (b BackendLDAP) GetUser(id string) (user.User, error) {
 
 // CreateUser creates a new user in the default unit.
 func (b BackendLDAP) CreateUser(u user.User) error {
+	var dn string
 	if strings.TrimSpace(b.unit) == "" {
-		return fmt.Errorf("no unit selected")
+		dn = "cn=" + u.ID() + "," + b.userUnit + b.baseDN
+	} else {
+		dn = "cn=" + u.ID() + "," + b.userUnit + "ou=" + b.unit + "," + b.baseDN
 	}
-
-	dn := "cn=" + u.ID() + ",ou=users,ou=" + b.unit + "," + b.baseDN
 
 	addRequest := ldap.NewAddRequest(dn, []ldap.Control{})
 	addRequest.Attribute("objectClass", []string{"inetOrgPerson"})
@@ -279,22 +341,17 @@ func (b BackendLDAP) CreateUser(u user.User) error {
 
 // UpdateUser modify an existing user.
 func (b BackendLDAP) UpdateUser(u user.User) error {
+	var dn string
 	if strings.TrimSpace(b.unit) == "" {
-		return fmt.Errorf("no unit selected")
+		dn = "cn=" + u.ID() + "," + b.userUnit + b.baseDN
+	} else {
+		dn = "cn=" + u.ID() + "," + b.userUnit + "ou=" + b.unit + "," + b.baseDN
 	}
-
-	dn := "cn=" + u.ID() + ",ou=users,ou=" + b.unit + "," + b.baseDN
 
 	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
-	if len(u.FirstNames()) > 0 {
-		modRequest.Replace("givenName", u.FirstNames())
-	}
-	if len(u.LastNames()) > 0 {
-		modRequest.Replace("sn", u.LastNames())
-	}
-	if len(u.Emails()) > 0 {
-		modRequest.Replace("mail", u.Emails())
-	}
+	modRequest.Replace("givenName", u.FirstNames())
+	modRequest.Replace("sn", u.LastNames())
+	modRequest.Replace("mail", u.Emails())
 
 	err := b.conn.Modify(modRequest)
 	if err != nil {
@@ -306,15 +363,72 @@ func (b BackendLDAP) UpdateUser(u user.User) error {
 
 // DeleteUser deletes a user.
 func (b BackendLDAP) DeleteUser(id string) error {
+	var dn string
 	if strings.TrimSpace(b.unit) == "" {
-		return fmt.Errorf("no unit selected")
+		dn = "cn=" + id + "," + b.userUnit + b.baseDN
+	} else {
+		dn = "cn=" + id + "," + b.userUnit + "ou=" + b.unit + "," + b.baseDN
 	}
 
-	dn := "cn=" + id + ",ou=users,ou=" + b.unit + "," + b.baseDN
 	delRequest := ldap.NewDelRequest(dn, []ldap.Control{})
-
 	err := b.conn.Del(delRequest)
 	if err != nil && !ldap.IsErrorWithCode(err, 32) {
+		return err
+	}
+
+	return nil
+}
+
+// AppendUser add attributes to the user with id.
+func (b BackendLDAP) AppendUser(u user.User) error {
+	var dn string
+	if strings.TrimSpace(b.unit) == "" {
+		dn = "cn=" + u.ID() + "," + b.userUnit + b.baseDN
+	} else {
+		dn = "cn=" + u.ID() + "," + b.userUnit + "ou=" + b.unit + "," + b.baseDN
+	}
+
+	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
+	if len(u.FirstNames()) > 0 {
+		modRequest.Add("givenName", u.FirstNames())
+	}
+	if len(u.LastNames()) > 0 {
+		modRequest.Add("sn", u.LastNames())
+	}
+	if len(u.Emails()) > 0 {
+		modRequest.Add("mail", u.Emails())
+	}
+
+	err := b.conn.Modify(modRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RemoveUser remove attributes from the user with id.
+func (b BackendLDAP) RemoveUser(u user.User) error {
+	var dn string
+	if strings.TrimSpace(b.unit) == "" {
+		dn = "cn=" + u.ID() + "," + b.userUnit + b.baseDN
+	} else {
+		dn = "cn=" + u.ID() + "," + b.userUnit + "ou=" + b.unit + "," + b.baseDN
+	}
+
+	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
+	if len(u.FirstNames()) > 0 {
+		modRequest.Delete("givenName", u.FirstNames())
+	}
+	if len(u.LastNames()) > 0 {
+		modRequest.Delete("sn", u.LastNames())
+	}
+	if len(u.Emails()) > 0 {
+		modRequest.Delete("mail", u.Emails())
+	}
+
+	err := b.conn.Modify(modRequest)
+	if err != nil {
 		return err
 	}
 
@@ -335,11 +449,12 @@ func (b BackendLDAP) GetPrincipalEmail(userID string) (string, error) {
 
 // SetUserPassword sets hashed password to user.
 func (b BackendLDAP) SetUserPassword(userID string, hashedPassword string) error {
+	var dn string
 	if strings.TrimSpace(b.unit) == "" {
-		return fmt.Errorf("no unit selected")
+		dn = "cn=" + userID + "," + b.userUnit + b.baseDN
+	} else {
+		dn = "cn=" + userID + "," + b.userUnit + "ou=" + b.unit + "," + b.baseDN
 	}
-
-	dn := "cn=" + userID + ",ou=users,ou=" + b.unit + "," + b.baseDN
 
 	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
 	modRequest.Replace("userPassword", []string{hashedPassword})
@@ -354,16 +469,19 @@ func (b BackendLDAP) SetUserPassword(userID string, hashedPassword string) error
 
 // ListGroups list all groups contained in the LDAP server.
 func (b BackendLDAP) ListGroups() (group.List, error) {
+	var searchDN string
 	if strings.TrimSpace(b.unit) == "" {
-		return nil, fmt.Errorf("no unit selected")
+		searchDN = b.groupUnit + b.baseDN
+	} else {
+		searchDN = b.groupUnit + "ou=" + b.unit + "," + b.baseDN
 	}
 
-	sr, err := b.search("ou=groups,ou="+b.unit+","+b.baseDN, "(objectClass=groupOfUniqueNames)", "cn", "uniqueMember")
+	sr, err := b.search(searchDN, "(objectClass=groupOfUniqueNames)", "cn", "uniqueMember")
 	if err != nil {
 		return nil, err
 	}
 
-	userDn := "ou=users,ou=" + b.unit + "," + b.baseDN
+	userDn := b.userUnit + "ou=" + b.unit + "," + b.baseDN
 	groups := make([]group.Group, len(sr.Entries))
 	for idx, entry := range sr.Entries {
 		usersInGroup := []string{}
@@ -383,11 +501,14 @@ func (b BackendLDAP) ListGroups() (group.List, error) {
 
 // GetGroup returns a specific group with id.
 func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
+	var searchDN string
 	if strings.TrimSpace(b.unit) == "" {
-		return nil, fmt.Errorf("no unit selected")
+		searchDN = b.groupUnit + b.baseDN
+	} else {
+		searchDN = b.groupUnit + "ou=" + b.unit + "," + b.baseDN
 	}
 
-	sr, err := b.search("ou=groups,ou="+b.unit+","+b.baseDN, "(cn="+id+")", "cn", "uniqueMember")
+	sr, err := b.search(searchDN, "(cn="+id+")", "cn", "uniqueMember")
 	if err != nil {
 		return nil, err
 	}
@@ -403,11 +524,11 @@ func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
 	entry := sr.Entries[0]
 	members := entry.GetAttributeValues("uniqueMember")
 
-	userDn := "ou=users,ou=" + b.unit + "," + b.baseDN
+	userDn := b.userUnit + "ou=" + b.unit + "," + b.baseDN
 	userIDs := make([]string, len(members))
-	for _, member := range members {
+	for idx, member := range members {
 		if strings.HasSuffix(member, userDn) {
-			userIDs = append(userIDs, strings.TrimPrefix(strings.TrimSuffix(member, ","+userDn), "cn="))
+			userIDs[idx] = strings.TrimPrefix(strings.TrimSuffix(member, ","+userDn), "cn=")
 		}
 	}
 
@@ -419,15 +540,16 @@ func (b BackendLDAP) GetGroup(id string) (group.Group, error) {
 
 // CreateGroup creates a new group in the default unit.
 func (b BackendLDAP) CreateGroup(g group.Group) error {
+	var dn string
 	if strings.TrimSpace(b.unit) == "" {
-		return fmt.Errorf("no unit selected")
+		dn = "cn=" + g.ID() + "," + b.groupUnit + b.baseDN
+	} else {
+		dn = "cn=" + g.ID() + "," + b.groupUnit + "ou=" + b.unit + "," + b.baseDN
 	}
-
-	dn := "cn=" + g.ID() + ",ou=groups,ou=" + b.unit + "," + b.baseDN
 
 	members := []string{}
 	for _, member := range g.Members() {
-		members = append(members, "cn="+member+",ou=users,ou="+b.unit+","+b.baseDN)
+		members = append(members, "cn="+member+","+b.userUnit+"ou="+b.unit+","+b.baseDN)
 	}
 
 	addRequest := ldap.NewAddRequest(dn, []ldap.Control{})
@@ -445,21 +567,20 @@ func (b BackendLDAP) CreateGroup(g group.Group) error {
 
 // UpdateGroup modify an existing group.
 func (b BackendLDAP) UpdateGroup(g group.Group) error {
+	var dn string
 	if strings.TrimSpace(b.unit) == "" {
-		return fmt.Errorf("no unit selected")
+		dn = "cn=" + g.ID() + "," + b.groupUnit + b.baseDN
+	} else {
+		dn = "cn=" + g.ID() + "," + b.groupUnit + "ou=" + b.unit + "," + b.baseDN
 	}
-
-	dn := "cn=" + g.ID() + ",ou=groups,ou=" + b.unit + "," + b.baseDN
 
 	members := []string{}
 	for _, member := range g.Members() {
-		members = append(members, "cn="+member+",ou=users,ou="+b.unit+","+b.baseDN)
+		members = append(members, "cn="+member+","+b.userUnit+"ou="+b.unit+","+b.baseDN)
 	}
 
 	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
-	if len(g.Members()) > 0 {
-		modRequest.Replace("uniqueMember", members)
-	}
+	modRequest.Replace("uniqueMember", members)
 
 	err := b.conn.Modify(modRequest)
 	if err != nil {
@@ -471,11 +592,12 @@ func (b BackendLDAP) UpdateGroup(g group.Group) error {
 
 // DeleteGroup deletes a group.
 func (b BackendLDAP) DeleteGroup(id string) error {
+	var dn string
 	if strings.TrimSpace(b.unit) == "" {
-		return fmt.Errorf("no unit selected")
+		dn = "cn=" + id + "," + b.groupUnit + b.baseDN
+	} else {
+		dn = "cn=" + id + "," + b.groupUnit + "ou=" + b.unit + "," + b.baseDN
 	}
-
-	dn := "cn=" + id + ",ou=groups,ou=" + b.unit + "," + b.baseDN
 
 	delRequest := ldap.NewDelRequest(dn, []ldap.Control{})
 
@@ -487,17 +609,18 @@ func (b BackendLDAP) DeleteGroup(id string) error {
 	return nil
 }
 
-// AddToGroup add members to the group with id.
-func (b BackendLDAP) AddToGroup(id string, memberIDs ...string) error {
+// AppendGroup add attributes to the group with id.
+func (b BackendLDAP) AppendGroup(g group.Group) error {
+	var dn string
 	if strings.TrimSpace(b.unit) == "" {
-		return fmt.Errorf("no unit selected")
+		dn = "cn=" + g.ID() + "," + b.groupUnit + b.baseDN
+	} else {
+		dn = "cn=" + g.ID() + "," + b.groupUnit + "ou=" + b.unit + "," + b.baseDN
 	}
 
-	dn := "cn=" + id + ",ou=groups,ou=" + b.unit + "," + b.baseDN
-
 	members := []string{}
-	for _, member := range memberIDs {
-		members = append(members, "cn="+member+",ou=users,ou="+b.unit+","+b.baseDN)
+	for _, member := range g.Members() {
+		members = append(members, "cn="+member+","+b.userUnit+"ou="+b.unit+","+b.baseDN)
 	}
 
 	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
@@ -511,17 +634,18 @@ func (b BackendLDAP) AddToGroup(id string, memberIDs ...string) error {
 	return nil
 }
 
-// RemoveFromGroup remove members from the group with id.
-func (b BackendLDAP) RemoveFromGroup(id string, memberIDs ...string) error {
+// RemoveGroup remove attributes from the group with id.
+func (b BackendLDAP) RemoveGroup(g group.Group) error {
+	var dn string
 	if strings.TrimSpace(b.unit) == "" {
-		return fmt.Errorf("no unit selected")
+		dn = "cn=" + g.ID() + "," + b.groupUnit + b.baseDN
+	} else {
+		dn = "cn=" + g.ID() + "," + b.groupUnit + "ou=" + b.unit + "," + b.baseDN
 	}
 
-	dn := "cn=" + id + ",ou=groups,ou=" + b.unit + "," + b.baseDN
-
 	members := []string{}
-	for _, member := range memberIDs {
-		members = append(members, "cn="+member+",ou=users,ou="+b.unit+","+b.baseDN)
+	for _, member := range g.Members() {
+		members = append(members, "cn="+member+","+b.userUnit+"ou="+b.unit+","+b.baseDN)
 	}
 
 	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
