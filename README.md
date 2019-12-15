@@ -89,126 +89,208 @@ Why ?
 
 ##### Manage realms
 
-Create or modify realms with `owl realm set` command.
+Create or modify realms with `owl realm` command.
 
 ```console
-$ owl realm set dev ldap://dev.my-company.com/dc=example,dc=com cn=admin,dc=example,dc=com
+$ owl realm dev ldap://dev.my-company.com/dc=example,dc=com cn=admin,dc=example,dc=com
 Set realm 'dev' to 'ldap://dev.my-company.com/dc=example,dc=com'.
 ```
 
-List created realms with `owl realm list` command.
+List realms with `owl realms` command, current realm is highlighted with an asterisk.
 
 ```console
-$ owl realm list -o table
-ID    Username                    URL
-dev   cn=admin,dc=example,dc=com  ldap://dev.my-company.com/dc=example,dc=com
-prod  cn=admin,dc=example,dc=com  ldap://prod.my-company.com/dc=example,dc=com
+$ owl realms
+ID     Username                    URL
+dev    cn=admin,dc=example,dc=com  ldap://dev.my-company.com/dc=example,dc=com
+prod*  cn=admin,dc=example,dc=com  ldap://prod.my-company.com/dc=example,dc=com
 ```
 
-Login into a realm with `owl realm login` command. It is also possible to use the `--realm` flag on a specific command.
+Login into a realm with `owl login` command. It is also possible to use the `--realm` flag on a specific command.
 
 ```console
-$ owl realm login dev
+$ owl login dev
 Password :
+Connected to realm 'dev' as user 'admin'.
+
+$ owl login dev
+Connected to realm 'dev' as user 'admin'.
+```
+
+Realm creation and login can be done in a single operation :
+
+```console
+$ owl login ldap://dev.my-company.com/dc=example,dc=com
+Username : cn=admin,dc=example,dc=com
+Password :
+Name this realm : dev
+Set realm 'dev' to 'ldap://dev.my-company.com/dc=example,dc=com'.
+Connected to realm 'dev' as user 'admin'.
+
+$ owl login ldap://dev.my-company.com/dc=example,dc=com
+Username : cn=admin,dc=example,dc=com
+Connected to realm 'dev' as user 'admin'.
+
+$ owl login ldap://dev.my-company.com/dc=example,dc=com cn=admin,dc=example,dc=com
 Connected to realm 'dev' as user 'admin'.
 ```
 
 ##### Manage organizational units
 
-Create a new unit with `owl unit create` command.
+Create a new unit with `owl create unit` command.
 
 ```console
-$ owl unit create my-unit Test unit
+$ owl create unit my-unit "Test unit"
 Created unit 'my-unit' in realm 'dev'.
 ```
 
-Every create command also read JSON on stdin, so these are other ways of doing :
+The create command also read JSON on stdin, so these are other ways of doing :
 
 ```console
-$ owl unit create <<< '{"ID": "my-unit", "Description": "Test unit"}'
+$ owl create unit <<< '{"ID": "my-unit", "Description": "Test unit"}'
 Created unit 'my-unit' in realm 'dev'.
 
-$ echo '{"ID": "my-unit", "Description": "Test unit"}' | owl unit create
+$ echo '{"ID": "my-unit", "Description": "Test unit"}' | owl create unit
 Created unit 'my-unit' in realm 'dev'.
 ```
 
-List existing units with `owl unit list` command.
+List existing units with `owl list unit` command.
 
 ```console
-$ owl unit list
+$ owl list unit
 ID       Description
 my-unit  Test unit
 ```
 
-To create users and groups, you first need to select a unit with `owl unit use` command. It is also possible to use the `--unit` flag on a specific command.
+To create users and groups, you first need to select a unit with `owl unit` command. It is also possible to use the `--unit` flag on a specific command.
 
 ```console
-$ owl unit use my-unit
+$ owl unit my-unit
 Using unit 'my-unit' for next commands.
+```
+
+Know which unit you're currently on with `owl unit` command.
+
+```console
+$ owl unit
+Using unit 'my-unit'.
+```
+
+The special `default` unit is selected if `owl unit` is never used before. You can re-select the default unit at any time.
+
+```console
+$ owl unit default
+Using default unit for next commands.
+
+$ owl unit -
+Using default unit for next commands.
 ```
 
 ##### Manage users
 
-To create a user, use `owl user create` command.
+To create a user, use `owl create user` command.
 
 ```console
-$ owl user create batman firstname=Bruce lastname=Wayne
+$ owl create user batman firstname=Bruce lastname=Wayne
 Created user 'batman' in unit 'my-unit' of realm 'dev'.
 
-$ owl user create <<< '{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"]}'
+$ owl create user <<< '{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"]}'
 Created user 'batman' in unit 'my-unit' of realm 'dev'.
 ```
 
-You can also create or replace an existing user with `owl user apply` command.
+You can also create or replace an existing user with `owl apply user` command.
 
 ```console
-$ owl user apply firstname=Bruce lastname=Wayne email=bruce.wayne@gotham.dc
-Modified user 'batman' in unit 'my-unit' of realm 'dev'.
+$ owl apply user batman firstname=Bruce lastname=Wayne email=bruce.wayne@gotham.dc
+Replaced user 'batman' in unit 'my-unit' of realm 'dev'.
 
-$ owl user apply joker firstname=Arthur lastname=Flake email=arthur.flake@gotham.dc
+$ owl apply user joker firstname=Arthur lastname=Flake email=arthur.flake@gotham.dc
 Created user 'joker' in unit 'my-unit' of realm 'dev'.
 ```
 
-To only add a single attribute, use `owl user append` command.
+To only add a single attribute, use `owl append user` command.
 
 ```console
-$ owl user append joker firstname="Jack"
+$ owl append user joker firstname="Jack"
 Modifier user 'joker' in unit 'my-unit' of realm 'dev'.
 ```
 
-List user with `owl user list` command.
+List user with `owl list user` command.
 
 ```console
-$ owl user list
+$ owl list user
 ID      First Names   Last Names  E-mails
 batman  Bruce         Wayne       bruce.wayne@gotham.dc
 joker   Arthur, Jack  Flake       arthur.flake@gotham.dc
 ```
 
-Give user a random password with `owl user new-password` command.
+Give user a random password with `owl password assign` command.
 
 ```console
-$ owl user new-password joker
+$ owl password assign joker
 Assigned new random password to user 'joker' in unit 'my-unit' of realm 'dev'.
 ```
 
 ##### Manage groups
 
-You guessed it, use `owl group create` command to create a group.
+You guessed it, use `owl create group` command to create a group.
 
 ```console
-$ owl group create bad-guys member=joker member=batman
+$ owl create group bad-guys member=joker member=batman
 Created group 'bad-guys' in unit 'my-unit' of realm 'dev'.
 ```
 
-Member list can be modified with `owl group member` sub-commands.
+Member list can be modified with `owl append` and `owl remove` commands.
 
 ```console
-$ owl group member remove bad-guys batman
-Modified group 'bad-guys' in unit 'my-unit' of realm 'dev'.
+$ owl remove group bad-guys member=batman
+Removed from group 'bad-guys' in unit 'my-unit' of realm 'dev'.
 
-$ owl group member add good-guys batman
-Modified group 'good-guys' in unit 'my-unit' of realm 'dev'.
+$ owl append group good-guys member=batman
+Appended to group 'good-guys' in unit 'my-unit' of realm 'dev'.
+```
+
+##### Verbs
+
+Here is a list of verbs available to manage objects, with `owl <verb> <object>` command structure.
+
+Write verbs :
+
+Verb   | Aliases        | If object already exists     | If object doesn't exist
+--     | --             | --                           | --
+create | insert, import | error                        | create object
+apply  | replace, ap    | replace object               | create object
+update | set            | replace specified attributes | error
+upsert | -              | replace specified attributes | create object
+append | add            | add attributes               | error
+remove | rm             | remove attributes            | error
+delete | del            | delete object                | nothing
+
+Read verbs :
+
+Verb | Aliases    | Description
+--   | --         | --
+list | ls, export | list all objects
+get  | read       | read object with given ID
+
+##### Export and import
+
+List all objects with `owl list` without parameter. All write verbs can import a list of objects. Use them without parameter to mix different types.
+
+```console
+$ owl list user -o json | owl apply --realm=prod --unit organization
+Replaced user 'batman' in unit 'organization' of realm 'prod'.
+Replaced user 'joker' in unit 'organization' of realm 'prod'.
+Created user 'robin' in unit 'organization' of realm 'prod'.
+```
+
+```console
+$ owl export -o json | owl apply --realm=prod
+Replaced unit 'my-unit' in realm 'prod'.
+Replaced user 'batman' in unit 'my-unit' of realm 'prod'.
+Replaced user 'joker' in unit 'my-unit' of realm 'prod'.
+Created user 'robin' in unit 'my-unit' of realm 'prod'.
+Replaced group 'good-guys' in unit 'my-unit' of realm 'prod'.
+Replaced group 'bad-guys' in unit 'my-unit' of realm 'prod'.
 ```
 
 ##### Advanded commands
@@ -216,14 +298,14 @@ Modified group 'good-guys' in unit 'my-unit' of realm 'dev'.
 All commands can output results in JSON or YAML format, thanks to the `--output` (short `-o`) flag.
 
 ```console
-$ owl user list -o json
+$ owl list user -o json
 {"Users": [{"ID": "batman", "FirstNames": ["Bruce"], "LastNames": ["Wayne"], "Emails": ["bruce.wayne@gotham.dc"]}, {"ID": "joker", "FirstNames": ["Arthur", "Jack"], "LastNames": ["Flake"], "Emails": ["arthur.flake@gotham.dc"]}]}
 ```
 
 This universal interface enable the use of other programs, for example `jq`.
 
 ```console
-$ owl user list -o json | jq
+$ owl list user -o json | jq
 {
     "Users": [
         {
@@ -254,7 +336,7 @@ $ owl user list -o json | jq
     ]
 }
 
-$ owl user ls -o json | jq ".Users | [.[].ID]"
+$ owl ls user -o json | jq ".Users | [.[].ID]"
 [
   "batman",
   "joker"
@@ -264,8 +346,9 @@ $ owl user ls -o json | jq ".Users | [.[].ID]"
 Owl also understand JSON if passed throught stdin, this enables chaining of owl commands.
 
 ```console
-$ owl user list -o json | owl import --realm=prod --unit=organization
-Imported 2 users in unit 'organization' of realm 'prod'.
+$ owl list user -o json | owl apply user --realm=prod --unit=organization
+Replaced user 'batman' in unit 'organization' of realm 'prod'.
+Replaced user 'joker' in unit 'organization' of realm 'prod'.
 ```
 
 #### Installation

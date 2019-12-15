@@ -34,17 +34,55 @@ func SetSession(s *session.Session) {
 // InitCommand initialize the cli unit command
 func InitCommand(parentCmd *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:     "unit {list,create,apply,delete,use} [arguments ...]",
-		Short:   "Manage units",
+		Use:     "unit [ID]",
+		Short:   "Show or select current unit",
 		Long:    "",
-		Example: fmt.Sprintf(`  %[1]s unit create <<< '{"ID": "my-unit", "Description": "Test unit"}'`, parentCmd.Root().Name()),
+		Example: fmt.Sprintf(`  %[1]s unit dev`, parentCmd.Root().Name()),
+		Args:    cobra.MaximumNArgs(1),
+		PreRun:  initCredentials,
+		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) == 1 {
+				id := args[0]
+
+				if id == "default" || id == "-" {
+					unitDriver.Use("")
+					globalSession.Unit = ""
+					cmd.PrintErrf("Using default unit for next commands.")
+				} else {
+					unit, err := unitDriver.Get(id)
+					if err != nil {
+						cmd.PrintErrln(err)
+						os.Exit(1)
+					}
+
+					if unit == nil {
+						cmd.PrintErrf("Unknown unit '%v'.", id)
+						cmd.PrintErrln()
+						os.Exit(1)
+					}
+
+					unitDriver.Use(id)
+					globalSession.Unit = unit.ID()
+
+					cmd.PrintErrf("Using unit '%v' for next commands.", unit.ID())
+				}
+			} else {
+				currentUnit := ""
+				flagUnit := cmd.Flag("unit")
+				if flagUnit != nil {
+					currentUnit = flagUnit.Value.String()
+				}
+
+				if currentUnit == "" {
+					cmd.PrintErrf("Using default unit.")
+				} else {
+					cmd.PrintErrf("Using unit '%v'.", currentUnit)
+				}
+			}
+			cmd.PrintErrln()
+		},
 	}
 	parentCmd.AddCommand(cmd)
-	initListCommand(cmd)
-	initCreateCommand(cmd)
-	initApplyCommand(cmd)
-	initDeleteCommand(cmd)
-	initUseCommand(cmd)
 }
 
 func initCredentials(cmd *cobra.Command, args []string) {
@@ -79,5 +117,8 @@ func initCredentials(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	credentialsDriver.Use(creds)
+	if err := credentialsDriver.Use(creds); err != nil {
+		cmd.PrintErrln(err)
+		os.Exit(1)
+	}
 }

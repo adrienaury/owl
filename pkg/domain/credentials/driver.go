@@ -46,6 +46,6 @@ func (d Driver) Test(creds Credentials) (bool, error) {
 }
 
 // Use method tell the backend to start using the credentials.
-func (d Driver) Use(creds Credentials) {
-	d.backend.UseCredentials(creds)
+func (d Driver) Use(creds Credentials) error {
+	return d.backend.OpenConnection(creds)
 }
