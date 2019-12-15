@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for 0.2.0
+### Planned for 0.3.0
+
+- TODO
+
+## 0.2.0
+
+### Owl CLI
 
 - `Changed` Command structure is now owl verb object, ex: `owl create user` instead of `owl user create` (#6)
 - `Changed` Usage of `realm` command is simplified, ex: `owl realm ls` becomes `owl realms` and `owl realm set` becomes `owl realm` (#6)
