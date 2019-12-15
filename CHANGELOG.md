@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned for 0.2.0
 
-- TODO
+- `Changed` Command structure is now owl verb object, ex: `owl create user` instead of `owl user create` (#6)
+- `Changed` Usage of `realm` command is simplified, ex: `owl realm ls` becomes `owl realms` and `owl realm set` becomes `owl realm` (#6)
+- `Changed` Usage of `unit` command is simplified, ex: `owl unit use` becomes `owl unit` (#6)
+- `Added` New verbs (`update`, `upsert`, `append`, `remove`, `get`) and aliases (#6)
+- `Added` Unit selection is now optional, use `owl unit -` or `owl unit default` to unselect current unit (#6)
 
 ## 0.1.0 "MVP"
 
