@@ -122,9 +122,9 @@ func (d Driver) Delete(id string) error {
 	return nil
 }
 
-// AddMembers to the group with id.
-func (d Driver) AddMembers(id string, memberIDs ...string) error {
-	err := d.backend.AddToGroup(id, memberIDs...)
+// Append attributes (members) to the group with id.
+func (d Driver) Append(g Group) error {
+	err := d.backend.AppendGroup(g)
 	if err != nil {
 		return err
 	}

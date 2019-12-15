@@ -112,7 +112,7 @@ func InitCommand(parentCmd *cobra.Command) {
 		Long:             "",
 		Aliases:          []string{"set"},
 		Example:          fmt.Sprintf("  %[1]s update", parentCmd.Root().Name()),
-		Args:             cobra.MaximumNArgs(1),
+		Args:             cobra.NoArgs,
 		PersistentPreRun: initCredentialsAndUnit,
 		Run: func(cmd *cobra.Command, args []string) {
 			b, err := ioutil.ReadAll(cmd.InOrStdin())

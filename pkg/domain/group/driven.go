@@ -7,6 +7,6 @@ type Backend interface {
 	CreateGroup(Group) error
 	UpdateGroup(Group) error
 	DeleteGroup(id string) error
-	AddToGroup(id string, memberIDs ...string) error
+	AppendGroup(Group) error
 	RemoveFromGroup(id string, memberIDs ...string) error
 }

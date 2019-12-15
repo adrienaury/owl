@@ -135,6 +135,15 @@ func (d Driver) Upsert(u User) (updated bool, err error) {
 	return true, nil
 }
 
+// Append attributes to the user with id.
+func (d Driver) Append(u User) error {
+	err := d.backend.AppendUser(u)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Delete the user with id.
 func (d Driver) Delete(id string) error {
 	err := d.backend.DeleteUser(id)

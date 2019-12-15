@@ -114,6 +114,15 @@ func (d Driver) Upsert(u Unit) (updated bool, err error) {
 	return true, nil
 }
 
+// Append attributes to the unit with id.
+func (d Driver) Append(u Unit) error {
+	err := d.backend.AppendUnit(u)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Delete the unit with id.
 func (d Driver) Delete(id string) error {
 	err := d.backend.DeleteUnit(id)

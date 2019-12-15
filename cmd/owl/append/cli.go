@@ -1,7 +1,9 @@
 package append
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -17,9 +19,9 @@ var (
 	realmDriver       realm.Driver
 	credentialsDriver credentials.Driver
 
-	unitDriver unit.Driver
-	//userDriver user.Driver
-	//groupDriver group.Driver
+	unitDriver  unit.Driver
+	userDriver  user.Driver
+	groupDriver group.Driver
 )
 
 // SetDrivers inject required domain drivers in the command.
@@ -27,8 +29,79 @@ func SetDrivers(rd realm.Driver, cd credentials.Driver, und unit.Driver, usd use
 	realmDriver = rd
 	credentialsDriver = cd
 	unitDriver = und
-	//userDriver = usd
-	//groupDriver = gd
+	userDriver = usd
+	groupDriver = gd
+}
+
+type exportedUser struct {
+	ID         string
+	FirstNames []string
+	LastNames  []string
+	Emails     []string
+}
+
+type exportedUsers struct {
+	Users []exportedUser
+}
+
+type exportedGroup struct {
+	ID      string
+	Members []string
+}
+
+type exportedGroups struct {
+	Groups []exportedGroup
+}
+
+type exportedUnit struct {
+	ID          string
+	Description string
+	Users       []exportedUser
+	Groups      []exportedGroup
+}
+
+type exportedUnits struct {
+	Units []exportedUnit
+}
+
+func appendGroups(cmd *cobra.Command, groups []exportedGroup, realmID, unitID string) {
+	unitDriver.Use(unitID)
+	for _, g := range groups {
+		err := groupDriver.Append(group.NewGroup(g.ID, g.Members...))
+		if err != nil {
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
+		cmd.PrintErrf("Appended group '%v' in unit '%v' of realm '%v'.", g.ID, unitID, realmID)
+		cmd.PrintErrln()
+	}
+}
+
+func appendUsers(cmd *cobra.Command, users []exportedUser, realmID, unitID string) {
+	unitDriver.Use(unitID)
+	for _, u := range users {
+		err := userDriver.Append(user.NewUser(u.ID, u.FirstNames, u.LastNames, u.Emails))
+		if err != nil {
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
+		cmd.PrintErrf("Appended user '%v' in unit '%v' of realm '%v'.", u.ID, unitID, realmID)
+		cmd.PrintErrln()
+	}
+}
+
+func appendUnits(cmd *cobra.Command, units []exportedUnit, realmID string) {
+	for _, u := range units {
+		err := unitDriver.Append(unit.NewUnit(u.ID, u.Description))
+		if err != nil {
+			cmd.PrintErrln(err)
+			os.Exit(1)
+		}
+		cmd.PrintErrf("Appended unit '%v' in realm '%v'.", u.ID, realmID)
+		cmd.PrintErrln()
+		appendUsers(cmd, u.Users, realmID, u.ID)
+		appendGroups(cmd, u.Groups, realmID, u.ID)
+	}
 }
 
 // InitCommand initialize the cli append command
@@ -39,10 +112,46 @@ func InitCommand(parentCmd *cobra.Command) {
 		Long:             "",
 		Aliases:          []string{"add"},
 		Example:          fmt.Sprintf("  %[1]s append", parentCmd.Root().Name()),
-		Args:             cobra.MaximumNArgs(1),
+		Args:             cobra.NoArgs,
 		PersistentPreRun: initCredentialsAndUnit,
 		Run: func(cmd *cobra.Command, args []string) {
-			// TODO
+			b, err := ioutil.ReadAll(cmd.InOrStdin())
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+
+			realmID := cmd.Flag("realm").Value.String()
+			unitID := cmd.Flag("unit").Value.String()
+
+			format1 := exportedUnits{}
+			format2 := exportedUsers{}
+			format3 := exportedGroups{}
+
+			err = json.Unmarshal(b, &format1)
+			if err == nil && len(format1.Units) > 0 {
+				appendUnits(cmd, format1.Units, realmID)
+				return
+			}
+
+			err = json.Unmarshal(b, &format2)
+			if err == nil && len(format2.Users) > 0 {
+				appendUsers(cmd, format2.Users, realmID, unitID)
+				return
+			}
+
+			err = json.Unmarshal(b, &format3)
+			if err == nil && len(format3.Groups) > 0 {
+				appendGroups(cmd, format3.Groups, realmID, unitID)
+				return
+			}
+
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+
+			cmd.PrintErrln("No valid data.")
 		},
 	}
 	parentCmd.AddCommand(cmd)

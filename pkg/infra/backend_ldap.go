@@ -175,6 +175,21 @@ func (b BackendLDAP) UpdateUnit(u unit.Unit) error {
 	return nil
 }
 
+// AppendUnit add attributes to the unit with id.
+func (b BackendLDAP) AppendUnit(u unit.Unit) error {
+	dn := "ou=" + u.ID() + "," + b.baseDN
+
+	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
+	// nothing to add on this object
+
+	err := b.conn.Modify(modRequest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // DeleteUnit deletes a unit.
 func (b BackendLDAP) DeleteUnit(id string) error {
 	dnUsers := "ou=users,ou=" + id + "," + b.baseDN
@@ -315,6 +330,33 @@ func (b BackendLDAP) DeleteUser(id string) error {
 
 	err := b.conn.Del(delRequest)
 	if err != nil && !ldap.IsErrorWithCode(err, 32) {
+		return err
+	}
+
+	return nil
+}
+
+// AppendUser add attributes to the user with id.
+func (b BackendLDAP) AppendUser(u user.User) error {
+	if strings.TrimSpace(b.unit) == "" {
+		return fmt.Errorf("no unit selected")
+	}
+
+	dn := "cn=" + u.ID() + ",ou=users,ou=" + b.unit + "," + b.baseDN
+
+	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
+	if len(u.FirstNames()) > 0 {
+		modRequest.Add("givenName", u.FirstNames())
+	}
+	if len(u.LastNames()) > 0 {
+		modRequest.Add("sn", u.LastNames())
+	}
+	if len(u.Emails()) > 0 {
+		modRequest.Add("mail", u.Emails())
+	}
+
+	err := b.conn.Modify(modRequest)
+	if err != nil {
 		return err
 	}
 
@@ -485,16 +527,16 @@ func (b BackendLDAP) DeleteGroup(id string) error {
 	return nil
 }
 
-// AddToGroup add members to the group with id.
-func (b BackendLDAP) AddToGroup(id string, memberIDs ...string) error {
+// AppendGroup add attributes to the group with id.
+func (b BackendLDAP) AppendGroup(g group.Group) error {
 	if strings.TrimSpace(b.unit) == "" {
 		return fmt.Errorf("no unit selected")
 	}
 
-	dn := "cn=" + id + ",ou=groups,ou=" + b.unit + "," + b.baseDN
+	dn := "cn=" + g.ID() + ",ou=groups,ou=" + b.unit + "," + b.baseDN
 
 	members := []string{}
-	for _, member := range memberIDs {
+	for _, member := range g.Members() {
 		members = append(members, "cn="+member+",ou=users,ou="+b.unit+","+b.baseDN)
 	}
 

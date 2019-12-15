@@ -123,7 +123,7 @@ func InitCommand(parentCmd *cobra.Command) {
 		Short:            "Create or replace attributes on objects",
 		Long:             "",
 		Example:          fmt.Sprintf("  %[1]s upsert", parentCmd.Root().Name()),
-		Args:             cobra.MaximumNArgs(1),
+		Args:             cobra.NoArgs,
 		PersistentPreRun: initCredentialsAndUnit,
 		Run: func(cmd *cobra.Command, args []string) {
 			b, err := ioutil.ReadAll(cmd.InOrStdin())
