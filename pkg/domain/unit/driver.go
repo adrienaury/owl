@@ -1,8 +1,9 @@
 package unit
 
-import "fmt"
-
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // Driver is the entry point of the domain that expose methods.
 type Driver struct {

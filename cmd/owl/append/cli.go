@@ -17,9 +17,9 @@ var (
 	realmDriver       realm.Driver
 	credentialsDriver credentials.Driver
 
-	unitDriver  unit.Driver
-	userDriver  user.Driver
-	groupDriver group.Driver
+	unitDriver unit.Driver
+	//userDriver user.Driver
+	//groupDriver group.Driver
 )
 
 // SetDrivers inject required domain drivers in the command.
@@ -27,8 +27,8 @@ func SetDrivers(rd realm.Driver, cd credentials.Driver, und unit.Driver, usd use
 	realmDriver = rd
 	credentialsDriver = cd
 	unitDriver = und
-	userDriver = usd
-	groupDriver = gd
+	//userDriver = usd
+	//groupDriver = gd
 }
 
 // InitCommand initialize the cli append command
