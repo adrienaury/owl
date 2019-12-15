@@ -31,10 +31,10 @@ func SetSession(s *session.Session) {
 // InitCommand initialize the cli login command
 func InitCommand(parentCmd *cobra.Command) {
 	loginCmd := &cobra.Command{
-		Use:     "login ID_OR_URL",
+		Use:     "login REALM_ID",
 		Short:   "Login to realm",
 		Long:    "Login to realm which means --realm option will be implied on next commands.",
-		Example: fmt.Sprintf("  %[1]s realm login dev", parentCmd.Root().Name()),
+		Example: fmt.Sprintf("  %[1]s login dev", parentCmd.Root().Name()),
 		Args:    cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			id := args[0]
