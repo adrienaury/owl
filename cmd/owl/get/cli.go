@@ -90,10 +90,8 @@ func initCredentials(cmd *cobra.Command) {
 func initUnit(cmd *cobra.Command) {
 	flagUnit := cmd.Flag("unit")
 	if flagUnit == nil || strings.TrimSpace(flagUnit.Value.String()) == "" {
-		cmd.PrintErrf("No unit selected, use '--unit' flag or '%v unit use <unit ID>' command.", cmd.Root().Name())
-		cmd.PrintErrln()
-		os.Exit(1)
+		unitDriver.Use("")
+	} else {
+		unitDriver.Use(flagUnit.Value.String())
 	}
-
-	unitDriver.Use(flagUnit.Value.String())
 }
