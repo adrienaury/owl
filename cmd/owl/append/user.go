@@ -76,7 +76,7 @@ func initUserCommand(parentCmd *cobra.Command) {
 					cmd.PrintErrln(err)
 					os.Exit(1)
 				}
-				cmd.PrintErrf("Appended user '%v' in unit '%v' of realm '%v'.", u.ID, flagUnit.Value, flagRealm.Value)
+				cmd.PrintErrf("Appended to user '%v' in unit '%v' of realm '%v'.", u.ID, flagUnit.Value, flagRealm.Value)
 				cmd.PrintErrln()
 			}
 		},

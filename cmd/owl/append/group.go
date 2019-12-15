@@ -71,7 +71,7 @@ func initGroupCommand(parentCmd *cobra.Command) {
 					cmd.PrintErrln(err)
 					os.Exit(1)
 				}
-				cmd.PrintErrf("Appended group '%v' in unit '%v' of realm '%v'.", g.ID, flagUnit.Value, flagRealm.Value)
+				cmd.PrintErrf("Appended to group '%v' in unit '%v' of realm '%v'.", g.ID, flagUnit.Value, flagRealm.Value)
 				cmd.PrintErrln()
 			}
 		},

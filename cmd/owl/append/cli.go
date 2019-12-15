@@ -72,7 +72,7 @@ func appendGroups(cmd *cobra.Command, groups []exportedGroup, realmID, unitID st
 			cmd.PrintErrln(err)
 			os.Exit(1)
 		}
-		cmd.PrintErrf("Appended group '%v' in unit '%v' of realm '%v'.", g.ID, unitID, realmID)
+		cmd.PrintErrf("Appended to group '%v' in unit '%v' of realm '%v'.", g.ID, unitID, realmID)
 		cmd.PrintErrln()
 	}
 }
@@ -85,7 +85,7 @@ func appendUsers(cmd *cobra.Command, users []exportedUser, realmID, unitID strin
 			cmd.PrintErrln(err)
 			os.Exit(1)
 		}
-		cmd.PrintErrf("Appended user '%v' in unit '%v' of realm '%v'.", u.ID, unitID, realmID)
+		cmd.PrintErrf("Appended to user '%v' in unit '%v' of realm '%v'.", u.ID, unitID, realmID)
 		cmd.PrintErrln()
 	}
 }
@@ -97,7 +97,7 @@ func appendUnits(cmd *cobra.Command, units []exportedUnit, realmID string) {
 			cmd.PrintErrln(err)
 			os.Exit(1)
 		}
-		cmd.PrintErrf("Appended unit '%v' in realm '%v'.", u.ID, realmID)
+		cmd.PrintErrf("Appended to unit '%v' in realm '%v'.", u.ID, realmID)
 		cmd.PrintErrln()
 		appendUsers(cmd, u.Users, realmID, u.ID)
 		appendGroups(cmd, u.Groups, realmID, u.ID)

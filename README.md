@@ -200,8 +200,8 @@ Created user 'batman' in unit 'my-unit' of realm 'dev'.
 You can also create or replace an existing user with `owl apply user` command.
 
 ```console
-$ owl apply user firstname=Bruce lastname=Wayne email=bruce.wayne@gotham.dc
-Modified user 'batman' in unit 'my-unit' of realm 'dev'.
+$ owl apply user batman firstname=Bruce lastname=Wayne email=bruce.wayne@gotham.dc
+Replaced user 'batman' in unit 'my-unit' of realm 'dev'.
 
 $ owl apply user joker firstname=Arthur lastname=Flake email=arthur.flake@gotham.dc
 Created user 'joker' in unit 'my-unit' of realm 'dev'.
@@ -223,10 +223,10 @@ batman  Bruce         Wayne       bruce.wayne@gotham.dc
 joker   Arthur, Jack  Flake       arthur.flake@gotham.dc
 ```
 
-Give user a random password with `owl password` command.
+Give user a random password with `owl password assign` command.
 
 ```console
-$ owl password joker
+$ owl password assign joker
 Assigned new random password to user 'joker' in unit 'my-unit' of realm 'dev'.
 ```
 
@@ -243,10 +243,10 @@ Member list can be modified with `owl append` and `owl remove` commands.
 
 ```console
 $ owl remove group bad-guys member=batman
-Modified group 'bad-guys' in unit 'my-unit' of realm 'dev'.
+Removed from group 'bad-guys' in unit 'my-unit' of realm 'dev'.
 
 $ owl append group good-guys member=batman
-Modified group 'good-guys' in unit 'my-unit' of realm 'dev'.
+Appended to group 'good-guys' in unit 'my-unit' of realm 'dev'.
 ```
 
 ##### Verbs
@@ -278,19 +278,19 @@ List all objects with `owl list` without parameter. All write verbs can import a
 
 ```console
 $ owl list user -o json | owl apply --realm=prod --unit organization
-Updated user 'batman' in unit 'organization' of realm 'prod'.
-Updated user 'joker' in unit 'organization' of realm 'prod'.
-Imported user 'robin' in unit 'organization' of realm 'prod'.
+Replaced user 'batman' in unit 'organization' of realm 'prod'.
+Replaced user 'joker' in unit 'organization' of realm 'prod'.
+Created user 'robin' in unit 'organization' of realm 'prod'.
 ```
 
 ```console
 $ owl export -o json | owl apply --realm=prod
-Updated unit 'my-unit' in realm 'prod'.
-Updated user 'batman' in unit 'my-unit' of realm 'prod'.
-Updated user 'joker' in unit 'my-unit' of realm 'prod'.
-Imported user 'robin' in unit 'my-unit' of realm 'prod'.
-Updated group 'good-guys' in unit 'my-unit' of realm 'prod'.
-Updated group 'bad-guys' in unit 'my-unit' of realm 'prod'.
+Replaced unit 'my-unit' in realm 'prod'.
+Replaced user 'batman' in unit 'my-unit' of realm 'prod'.
+Replaced user 'joker' in unit 'my-unit' of realm 'prod'.
+Created user 'robin' in unit 'my-unit' of realm 'prod'.
+Replaced group 'good-guys' in unit 'my-unit' of realm 'prod'.
+Replaced group 'bad-guys' in unit 'my-unit' of realm 'prod'.
 ```
 
 ##### Advanded commands
@@ -347,7 +347,8 @@ Owl also understand JSON if passed throught stdin, this enables chaining of owl 
 
 ```console
 $ owl list user -o json | owl apply user --realm=prod --unit=organization
-Imported 2 users in unit 'organization' of realm 'prod'.
+Replaced user 'batman' in unit 'organization' of realm 'prod'.
+Replaced user 'joker' in unit 'organization' of realm 'prod'.
 ```
 
 #### Installation

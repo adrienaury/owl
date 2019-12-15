@@ -65,7 +65,7 @@ func initUnitCommand(parentCmd *cobra.Command) {
 					cmd.PrintErrln(err)
 					os.Exit(1)
 				}
-				cmd.PrintErrf("Appended unit '%v' in realm '%v'.", u.ID, flagRealm.Value)
+				cmd.PrintErrf("Appended to unit '%v' in realm '%v'.", u.ID, flagRealm.Value)
 				cmd.PrintErrln()
 			}
 		},
