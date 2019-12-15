@@ -68,12 +68,21 @@ func InitCommand(parentCmd *cobra.Command) {
 					os.Exit(1)
 				}
 			} else {
-				aunit, err := unitDriver.Get(cmd.Flag("unit").Value.String())
-				if err != nil {
-					cmd.PrintErrln(err)
-					os.Exit(1)
+				if cmd.Flag("unit") != nil && strings.TrimSpace(cmd.Flag("unit").Value.String()) != "" {
+					aunit, err := unitDriver.Get(cmd.Flag("unit").Value.String())
+					if err != nil {
+						cmd.PrintErrln(err)
+						os.Exit(1)
+					}
+					if aunit == nil {
+						cmd.PrintErrf("No unit named '%v'.", cmd.Flag("unit").Value.String())
+						cmd.PrintErrln()
+						os.Exit(1)
+					}
+					units = unit.NewList([]unit.Unit{aunit})
+				} else {
+					units = unit.NewList([]unit.Unit{unit.NewUnit("", "")})
 				}
-				units = unit.NewList([]unit.Unit{aunit})
 			}
 
 			exportedUnits := []exportedUnit{}
@@ -135,7 +144,11 @@ func InitCommand(parentCmd *cobra.Command) {
 								}
 							}
 						}
-						fmt.Fprintf(w, "%v\t%v\t%v\t%v\t%v\t%v\n", un.ID, us.ID(), strings.Join(us.FirstNames(), ", "), strings.Join(us.LastNames(), ", "), strings.Join(us.Emails(), ", "), strings.Join(memberOf, ", "))
+						unID := un.ID
+						if unID == "" {
+							unID = "default"
+						}
+						fmt.Fprintf(w, "%v\t%v\t%v\t%v\t%v\t%v\n", unID, us.ID(), strings.Join(us.FirstNames(), ", "), strings.Join(us.LastNames(), ", "), strings.Join(us.Emails(), ", "), strings.Join(memberOf, ", "))
 					}
 				}
 				w.Flush()
