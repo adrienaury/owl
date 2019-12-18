@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned for 0.2.0
+### Planned for 0.3.0
+
+Owl CLI
+
+- `Fixed` error when session.yaml file doesn't exist (#10)
+- `Changed` all local files are now created in folder `.owl` under user home directory (#9)
+
+## 0.2.0
+
+Owl CLI
 
 - `Changed` Command structure is now owl verb object, ex: `owl create user` instead of `owl user create` (#6)
 - `Changed` Usage of `realm` command is simplified, ex: `owl realm ls` becomes `owl realms` and `owl realm set` becomes `owl realm` (#6)
@@ -18,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## 0.1.0 "MVP"
 
-### Owl CLI
+Owl CLI
 
 - `Added` LDAP backend connector
 - `Added` Create, update, delete and list realms
