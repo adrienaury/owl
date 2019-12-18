@@ -11,8 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Owl CLI
 
-- `Fixed` error when session.yaml file doesn't exist
-- `Changed` all local files are now created in folder `.owl` under user home directory
+- `Fixed` error when session.yaml file doesn't exist (#10)
+- `Changed` all local files are now created in folder `.owl` under user home directory (#9)
 
 ## 0.2.0
 
