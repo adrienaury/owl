@@ -26,9 +26,11 @@ func NewSession(sourcefile string) *Session {
 func (s *Session) Restore() (*Session, error) {
 	dat, err := ioutil.ReadFile(s.sourcefile)
 	if os.IsNotExist(err) {
-		s.Dump()
-	} else if err != nil {
-		return s, fmt.Errorf("invalid session file: %s", err)
+		err = s.Dump()
+	}
+
+	if err != nil {
+		return s, fmt.Errorf("error reading session file: %s", err)
 	}
 
 	err = yaml.Unmarshal(dat, s)

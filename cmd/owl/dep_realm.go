@@ -1,8 +1,8 @@
 package main
 
 import (
-	domain "github.com/adrienaury/owl/pkg/domain/realm"
 	"github.com/adrienaury/owl/cmd/owl/paths"
+	domain "github.com/adrienaury/owl/pkg/domain/realm"
 	infra "github.com/adrienaury/owl/pkg/infra/realm"
 )
 
