@@ -3,6 +3,7 @@ package session
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 
 	yaml "gopkg.in/yaml.v3"
 )
@@ -24,7 +25,9 @@ func NewSession(sourcefile string) *Session {
 // Restore session from file
 func (s *Session) Restore() (*Session, error) {
 	dat, err := ioutil.ReadFile(s.sourcefile)
-	if err != nil {
+	if os.IsNotExist(err) {
+		s.Dump()
+	} else if err != nil {
 		return s, fmt.Errorf("invalid session file: %s", err)
 	}
 
