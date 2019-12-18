@@ -74,7 +74,7 @@ How ?
 
 * it's simple, no complicated fanciness (like in LDAP for example)
 * read inputs as json on the standard input by default
-* write outputs as json on the standard output by default
+* write outputs as json on the standard output
 * write logs on the standard error by default
 
 Second principle : Owl is a devops tool.
@@ -82,7 +82,7 @@ Second principle : Owl is a devops tool.
 Why ?
 
 * it can be used by a human operator or automated by scripting
-* local configuration is stored "as code" in the current directory
+* local configuration is stored "as code" in local directory
 * every object can be serialized as JSON or YAML, if you need to store them in a code repository (like Git)
 
 #### Examples
@@ -96,15 +96,6 @@ $ owl realm dev ldap://dev.my-company.com/dc=example,dc=com cn=admin,dc=example,
 Set realm 'dev' to 'ldap://dev.my-company.com/dc=example,dc=com'.
 ```
 
-List realms with `owl realms` command, current realm is highlighted with an asterisk.
-
-```console
-$ owl realms
-ID     Username                    URL
-dev    cn=admin,dc=example,dc=com  ldap://dev.my-company.com/dc=example,dc=com
-prod*  cn=admin,dc=example,dc=com  ldap://prod.my-company.com/dc=example,dc=com
-```
-
 Login into a realm with `owl login` command. It is also possible to use the `--realm` flag on a specific command.
 
 ```console
@@ -116,7 +107,16 @@ $ owl login dev
 Connected to realm 'dev' as user 'admin'.
 ```
 
-Realm creation and login can be done in a single operation :
+List realms with `owl realms` command, current realm is highlighted with an asterisk.
+
+```console
+$ owl realms
+ID     Username                    URL
+dev    cn=admin,dc=example,dc=com  ldap://dev.my-company.com/dc=example,dc=com
+prod*  cn=admin,dc=example,dc=com  ldap://prod.my-company.com/dc=example,dc=com
+```
+
+`TODO` Realm creation and login can be done in a single operation :
 
 ```console
 $ owl login ldap://dev.my-company.com/dc=example,dc=com
@@ -357,11 +357,11 @@ Download the latest version for your OS from the [release page](https://github.c
 
 ### Owl REST Server
 
-TODO
+`TODO`
 
 ### Owl Web GUI
 
-TODO
+`TODO`
 
 ## Contribute
 
@@ -387,12 +387,16 @@ The project is licensed under the [MIT License](https://opensource.org/licenses/
 
 ### Use of 3rd party librairies
 
-Library                                     | Version | Licenses                       | Usage                |
---------------------------------------------|---------|--------------------------------|----------------------|
-github.com/spf13/cobra                      | v0.0.5  | [Apache-2.0]](NOTICE.md#cobra) | CLI Library          |
-github.com/mitchellh/go-homedir             | v1.1.0  | [MIT]](NOTICE.md#go-homedir)   | Find User Home       |
-github.com/docker/docker-credential-helpers | v0.6.3  | [MIT]](NOTICE.md#dch)          | Local Secret Storage |
-golang.org/pkg                              | v1.13   | [BSD-3-Clause](NOTICE.md#go)   | Go Standard Library  |
+Library                                     | Version | Licenses                        |
+--------------------------------------------|---------|---------------------------------|
+golang.org/pkg                              | v1.13   | [BSD-3-Clause](NOTICE.md#go)    |
+github.com/spf13/cobra                      | v0.0.5  | [Apache-2.0](NOTICE.md#cobra)   |
+github.com/mitchellh/go-homedir             | v1.1.0  | [MIT](NOTICE.md#go-homedir)     |
+github.com/docker/docker-credential-helpers | v0.6.3  | [MIT](NOTICE.md#dch)            |
+gopkg.in/yaml.v3                            | v3.0.0  | [Apache-2.0](NOTICE.md#yaml)    |
+gopkg.in/ldap.v3                            | v3.1.0  | [MIT](NOTICE.md#ldap)           |
+github.com/spf13/pflag                      | v1.0.3  | [BSD-3-Clause](NOTICE.md#pflag) |
+gopkg.in/asn1-ber.v1                        | v1.0.0  | [MIT](NOTICE.md#asn1)           |
 
 Check NOTICE.md for copyright notices.
 
