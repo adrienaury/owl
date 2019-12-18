@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 
 	"github.com/adrienaury/owl/pkg/domain/realm"
 	"gopkg.in/yaml.v3"
@@ -26,16 +27,22 @@ type YAMLRealm struct {
 }
 
 // NewYAMLStorage create a new YAML storage
-func NewYAMLStorage() YAMLStorage {
-	return YAMLStorage{}
+func NewYAMLStorage(localDir string) YAMLStorage {
+	return YAMLStorage{localDir}
 }
 
 // YAMLStorage provides storage in a local YAML file
-type YAMLStorage struct{}
+type YAMLStorage struct {
+	localDir string
+}
+
+func (s YAMLStorage) getFileName() string {
+	return path.Join(s.localDir, "realms.yaml")
+}
 
 // CreateOrUpdateRealm in the local YAML file
 func (s YAMLStorage) CreateOrUpdateRealm(r realm.Realm) error {
-	structure, err := readFile()
+	structure, err := s.readFile()
 	if err != nil {
 		return err
 	}
@@ -57,12 +64,12 @@ func (s YAMLStorage) CreateOrUpdateRealm(r realm.Realm) error {
 		result = append(result, YAMLRealm{r.ID(), r.URL(), r.Username()})
 	}
 
-	return writeFile(&YAMLStructure{Version, result})
+	return s.writeFile(&YAMLStructure{Version, result})
 }
 
 // GetRealm from the local YAML file
 func (s YAMLStorage) GetRealm(id string) (realm.Realm, error) {
-	structure, err := readFile()
+	structure, err := s.readFile()
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +87,7 @@ func (s YAMLStorage) GetRealm(id string) (realm.Realm, error) {
 
 // DeleteRealm remove the realm with id from the local storage.
 func (s YAMLStorage) DeleteRealm(id string) error {
-	structure, err := readFile()
+	structure, err := s.readFile()
 	if err != nil {
 		return err
 	}
@@ -94,12 +101,12 @@ func (s YAMLStorage) DeleteRealm(id string) error {
 		}
 	}
 
-	return writeFile(&YAMLStructure{Version, result})
+	return s.writeFile(&YAMLStructure{Version, result})
 }
 
 // ListRealms contained in the local YAML file
 func (s YAMLStorage) ListRealms() (realm.List, error) {
-	structure, err := readFile()
+	structure, err := s.readFile()
 	if err != nil {
 		return nil, err
 	}
@@ -115,16 +122,16 @@ func (s YAMLStorage) ListRealms() (realm.List, error) {
 	return realm.NewList(result), nil
 }
 
-func readFile() (*YAMLStructure, error) {
+func (s YAMLStorage) readFile() (*YAMLStructure, error) {
 	structure := &YAMLStructure{
 		Version: Version,
 	}
 
-	if _, err := os.Stat("realms.yaml"); os.IsNotExist(err) {
+	if _, err := os.Stat(s.getFileName()); os.IsNotExist(err) {
 		return structure, nil
 	}
 
-	dat, err := ioutil.ReadFile("realms.yaml")
+	dat, err := ioutil.ReadFile(s.getFileName())
 	if err != nil {
 		return nil, err
 	}
@@ -135,19 +142,19 @@ func readFile() (*YAMLStructure, error) {
 	}
 
 	if structure.Version != Version {
-		return nil, fmt.Errorf("invalid version in ./realms.yaml (%v)", structure.Version)
+		return nil, fmt.Errorf("invalid version in %v (%v)", s.getFileName(), structure.Version)
 	}
 
 	return structure, nil
 }
 
-func writeFile(structure *YAMLStructure) error {
+func (s YAMLStorage) writeFile(structure *YAMLStructure) error {
 	out, err := yaml.Marshal(structure)
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile("realms.yaml", out, 0640)
+	err = ioutil.WriteFile(s.getFileName(), out, 0640)
 	if err != nil {
 		return err
 	}

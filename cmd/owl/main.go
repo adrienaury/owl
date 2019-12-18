@@ -14,6 +14,7 @@ import (
 	"github.com/adrienaury/owl/cmd/owl/list"
 	"github.com/adrienaury/owl/cmd/owl/login"
 	"github.com/adrienaury/owl/cmd/owl/password"
+	"github.com/adrienaury/owl/cmd/owl/paths"
 	"github.com/adrienaury/owl/cmd/owl/realm"
 	"github.com/adrienaury/owl/cmd/owl/realms"
 	"github.com/adrienaury/owl/cmd/owl/remove"
@@ -21,7 +22,6 @@ import (
 	"github.com/adrienaury/owl/cmd/owl/unit"
 	"github.com/adrienaury/owl/cmd/owl/update"
 	"github.com/adrienaury/owl/cmd/owl/upsert"
-	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -35,8 +35,7 @@ var (
 	builtBy   string
 
 	// session
-	home          = initHome()
-	globalSession = session.NewSession(path.Join(home, "session.yaml"))
+	globalSession = session.NewSession(path.Join(paths.LocalDir, "session.yaml"))
 
 	// global flags
 	flagOutput string
@@ -138,20 +137,4 @@ func initConfig() {
 
 	login.SetSession(globalSession)
 	unit.SetSession(globalSession)
-}
-
-func initHome() string {
-	home, err := homedir.Dir()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	err = os.Mkdir(home+"/.owl", 0644)
-	if err != nil && !os.IsExist(err) {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	return path.Join(home, ".owl")
 }
