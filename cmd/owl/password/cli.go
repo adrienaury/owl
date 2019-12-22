@@ -18,7 +18,7 @@ var (
 	unitDriver        unit.Driver
 	realmDriver       realm.Driver
 	credentialsDriver credentials.Driver
-	policyDriver      policy.Driver
+	//policyDriver      policy.Driver
 )
 
 // SetDrivers inject required domain drivers in the command.
@@ -27,7 +27,7 @@ func SetDrivers(pd password.Driver, un unit.Driver, r realm.Driver, c credential
 	unitDriver = un
 	realmDriver = r
 	credentialsDriver = c
-	policyDriver = pold
+	//policyDriver = pold
 }
 
 // InitCommand initialize the cli password command
