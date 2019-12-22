@@ -24,6 +24,7 @@ type YAMLRealm struct {
 	ID       string `yaml:"id"`
 	URL      string `yaml:"url"`
 	Username string `yaml:"username"`
+	Policy   string `yaml:"policy,omitempty"`
 }
 
 // NewYAMLStorage create a new YAML storage
@@ -56,12 +57,13 @@ func (s YAMLStorage) CreateOrUpdateRealm(r realm.Realm) error {
 			updated = true
 			ym.URL = r.URL()
 			ym.Username = r.Username()
+			ym.Policy = r.Policy()
 		}
 		result = append(result, ym)
 	}
 
 	if !updated {
-		result = append(result, YAMLRealm{r.ID(), r.URL(), r.Username()})
+		result = append(result, YAMLRealm{r.ID(), r.URL(), r.Username(), r.Policy()})
 	}
 
 	return s.writeFile(&YAMLStructure{Version, result})
@@ -78,7 +80,7 @@ func (s YAMLStorage) GetRealm(id string) (realm.Realm, error) {
 
 	for _, ym := range list {
 		if ym.ID == id {
-			return realm.NewRealm(ym.ID, ym.URL, ym.Username), nil
+			return realm.NewRealmWithPolicy(ym.ID, ym.URL, ym.Username, ym.Policy), nil
 		}
 	}
 
@@ -115,7 +117,7 @@ func (s YAMLStorage) ListRealms() (realm.List, error) {
 	result := make([]realm.Realm, 0, len(list))
 
 	for _, ym := range list {
-		m := realm.NewRealm(ym.ID, ym.URL, ym.Username)
+		m := realm.NewRealmWithPolicy(ym.ID, ym.URL, ym.Username, ym.Policy)
 		result = append(result, m)
 	}
 

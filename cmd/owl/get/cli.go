@@ -6,6 +6,7 @@ import (
 
 	"github.com/adrienaury/owl/pkg/domain/credentials"
 	"github.com/adrienaury/owl/pkg/domain/group"
+	"github.com/adrienaury/owl/pkg/domain/policy"
 	"github.com/adrienaury/owl/pkg/domain/realm"
 	"github.com/adrienaury/owl/pkg/domain/unit"
 	"github.com/adrienaury/owl/pkg/domain/user"
@@ -15,16 +16,21 @@ import (
 var (
 	realmDriver       realm.Driver
 	credentialsDriver credentials.Driver
+	policyDriver      policy.Driver
 
 	unitDriver  unit.Driver
 	userDriver  user.Driver
 	groupDriver group.Driver
+
+	// init
+	curRealm realm.Realm
 )
 
 // SetDrivers inject required domain drivers in the command.
-func SetDrivers(rd realm.Driver, cd credentials.Driver, und unit.Driver, usd user.Driver, gd group.Driver) {
+func SetDrivers(rd realm.Driver, cd credentials.Driver, pold policy.Driver, und unit.Driver, usd user.Driver, gd group.Driver) {
 	realmDriver = rd
 	credentialsDriver = cd
+	policyDriver = pold
 	unitDriver = und
 	userDriver = usd
 	groupDriver = gd

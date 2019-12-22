@@ -44,3 +44,16 @@ func (d Driver) List() (List, error) {
 	}
 	return list, nil
 }
+
+// SetPolicy for the realm.
+func (d Driver) SetPolicy(id string, policy string) error {
+	realm, err := d.Get(id)
+	if err != nil {
+		return err
+	}
+	realm = NewRealmWithPolicy(realm.ID(), realm.URL(), realm.Username(), policy)
+	if err := d.storage.CreateOrUpdateRealm(realm); err != nil {
+		return err
+	}
+	return nil
+}

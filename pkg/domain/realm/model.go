@@ -10,6 +10,7 @@ type Realm interface {
 	ID() string
 	URL() string
 	Username() string
+	Policy() string
 	String() string
 	MarshalJSON() ([]byte, error)
 	MarshalYAML() (interface{}, error)
@@ -19,6 +20,7 @@ type realm struct {
 	id       string
 	url      string
 	username string
+	policy   string
 }
 
 // NewRealm create a new realm object.
@@ -27,12 +29,24 @@ func NewRealm(id, url, username string) Realm {
 		id:       id,
 		url:      url,
 		username: username,
+		policy:   "default",
+	}
+}
+
+// NewRealmWithPolicy create a new realm object.
+func NewRealmWithPolicy(id, url, username, policy string) Realm {
+	return realm{
+		id:       id,
+		url:      url,
+		username: username,
+		policy:   policy,
 	}
 }
 
 func (r realm) ID() string       { return r.id }
 func (r realm) URL() string      { return r.url }
 func (r realm) Username() string { return r.username }
+func (r realm) Policy() string   { return r.policy }
 func (r realm) String() string   { return fmt.Sprintf("%v %v %v", r.ID(), r.URL(), r.Username()) }
 func (r realm) MarshalJSON() ([]byte, error) {
 	b, e := json.Marshal(struct{ ID, URL, Username string }{r.id, r.url, r.username})

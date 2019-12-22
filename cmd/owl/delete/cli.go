@@ -9,6 +9,7 @@ import (
 
 	"github.com/adrienaury/owl/pkg/domain/credentials"
 	"github.com/adrienaury/owl/pkg/domain/group"
+	"github.com/adrienaury/owl/pkg/domain/policy"
 	"github.com/adrienaury/owl/pkg/domain/realm"
 	"github.com/adrienaury/owl/pkg/domain/unit"
 	"github.com/adrienaury/owl/pkg/domain/user"
@@ -18,16 +19,21 @@ import (
 var (
 	realmDriver       realm.Driver
 	credentialsDriver credentials.Driver
+	policyDriver      policy.Driver
 
 	unitDriver  unit.Driver
 	userDriver  user.Driver
 	groupDriver group.Driver
+
+	// init
+	curRealm realm.Realm
 )
 
 // SetDrivers inject required domain drivers in the command.
-func SetDrivers(rd realm.Driver, cd credentials.Driver, und unit.Driver, usd user.Driver, gd group.Driver) {
+func SetDrivers(rd realm.Driver, cd credentials.Driver, pold policy.Driver, und unit.Driver, usd user.Driver, gd group.Driver) {
 	realmDriver = rd
 	credentialsDriver = cd
+	policyDriver = pold
 	unitDriver = und
 	userDriver = usd
 	groupDriver = gd
@@ -90,9 +96,9 @@ func deleteUsers(cmd *cobra.Command, users []exportedUser, realmID, unitID strin
 	}
 }
 
-func deleteUnits(cmd *cobra.Command, units []exportedUnit, realmID string) {
+func deleteUnits(cmd *cobra.Command, units []exportedUnit, realmID string, p policy.Policy) {
 	for _, u := range units {
-		err := unitDriver.Delete(u.ID)
+		err := unitDriver.Delete(u.ID, p.Objects()["unit"])
 		if err != nil {
 			cmd.PrintErrln(err)
 			os.Exit(1)
@@ -115,6 +121,14 @@ func InitCommand(parentCmd *cobra.Command) {
 		Args:             cobra.NoArgs,
 		PersistentPreRun: initCredentialsAndUnit,
 		Run: func(cmd *cobra.Command, args []string) {
+			policyName := curRealm.Policy()
+
+			policy, err := policyDriver.Get(policyName)
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+
 			b, err := ioutil.ReadAll(cmd.InOrStdin())
 			if err != nil {
 				cmd.PrintErrln(err)
@@ -130,7 +144,7 @@ func InitCommand(parentCmd *cobra.Command) {
 
 			err = json.Unmarshal(b, &format1)
 			if err == nil && len(format1.Units) > 0 {
-				deleteUnits(cmd, format1.Units, realmID)
+				deleteUnits(cmd, format1.Units, realmID, policy)
 				return
 			}
 
@@ -173,19 +187,20 @@ func initCredentials(cmd *cobra.Command) {
 		os.Exit(1)
 	}
 
-	realm, err := realmDriver.Get(flagRealm.Value.String())
+	var err error
+	curRealm, err = realmDriver.Get(flagRealm.Value.String())
 	if err != nil {
 		cmd.PrintErrln(err)
 		os.Exit(1)
 	}
 
-	if realm == nil {
+	if curRealm == nil {
 		cmd.PrintErrf("No realm with id '%v'.", flagRealm.Value.String())
 		cmd.PrintErrln()
 		os.Exit(1)
 	}
 
-	creds, err := credentialsDriver.Get(realm.URL(), realm.Username())
+	creds, err := credentialsDriver.Get(curRealm.URL(), curRealm.Username())
 	if err != nil {
 		cmd.PrintErrln(err)
 		os.Exit(1)

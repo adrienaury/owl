@@ -23,7 +23,15 @@ func initUnitCommand(parentCmd *cobra.Command) {
 		Run: func(cmd *cobra.Command, args []string) {
 			id := args[0]
 
-			unit, err := unitDriver.Get(id)
+			policyName := curRealm.Policy()
+
+			policy, err := policyDriver.Get(policyName)
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+
+			unit, err := unitDriver.Get(id, policy.Objects()["unit"])
 			if err != nil {
 				cmd.PrintErrln(err)
 				os.Exit(1)

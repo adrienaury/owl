@@ -7,6 +7,7 @@ import (
 
 	"github.com/adrienaury/owl/pkg/domain/credentials"
 	"github.com/adrienaury/owl/pkg/domain/password"
+	"github.com/adrienaury/owl/pkg/domain/policy"
 	"github.com/adrienaury/owl/pkg/domain/realm"
 	"github.com/adrienaury/owl/pkg/domain/unit"
 	"github.com/spf13/cobra"
@@ -17,14 +18,16 @@ var (
 	unitDriver        unit.Driver
 	realmDriver       realm.Driver
 	credentialsDriver credentials.Driver
+	policyDriver      policy.Driver
 )
 
 // SetDrivers inject required domain drivers in the command.
-func SetDrivers(pd password.Driver, un unit.Driver, r realm.Driver, c credentials.Driver) {
+func SetDrivers(pd password.Driver, un unit.Driver, r realm.Driver, c credentials.Driver, pold policy.Driver) {
 	passwordDriver = pd
 	unitDriver = un
 	realmDriver = r
 	credentialsDriver = c
+	policyDriver = pold
 }
 
 // InitCommand initialize the cli password command

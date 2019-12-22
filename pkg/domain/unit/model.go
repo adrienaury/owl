@@ -80,3 +80,9 @@ func (l unitlist) MarshalJSON() ([]byte, error) {
 func (l unitlist) MarshalYAML() (interface{}, error) {
 	return l.slice, nil
 }
+
+// Policy for units.
+type Policy interface {
+	BackendObject() string
+	BackendFields() map[string]string
+}

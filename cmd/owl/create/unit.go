@@ -25,6 +25,14 @@ func initUnitCommand(parentCmd *cobra.Command) {
 		Example: fmt.Sprintf(`  %[1]s create unit <<< '{"ID": "my-unit", "Description": "Test unit"}'`, parentCmd.Root().Name()),
 		Args:    cobra.ArbitraryArgs,
 		Run: func(cmd *cobra.Command, args []string) {
+			policyName := curRealm.Policy()
+
+			policy, err := policyDriver.Get(policyName)
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+
 			units := []singleUnit{}
 
 			if len(args) > 0 {
@@ -60,7 +68,7 @@ func initUnitCommand(parentCmd *cobra.Command) {
 			flagRealm := cmd.Flag("realm")
 
 			for _, u := range units {
-				err := unitDriver.Create(unit.NewUnit(u.ID, u.Description))
+				err := unitDriver.Create(unit.NewUnit(u.ID, u.Description), policy.Objects()["unit"])
 				if err != nil {
 					cmd.PrintErrln(err)
 					os.Exit(1)

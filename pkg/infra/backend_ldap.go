@@ -102,8 +102,8 @@ func (b BackendLDAP) TestCredentials(c credentials.Credentials) (bool, error) {
 }
 
 // ListUnits list all units contained in the LDAP server.
-func (b BackendLDAP) ListUnits() (unit.List, error) {
-	sr, err := b.search(b.baseDN, "(objectClass=organizationalUnit)", "ou", "description")
+func (b BackendLDAP) ListUnits(objectName string, fieldNames map[string]string) (unit.List, error) {
+	sr, err := b.search(b.baseDN, "(objectClass="+objectName+")", b.fieldMapToArray(fieldNames)...)
 	if err != nil {
 		return nil, err
 	}
@@ -111,8 +111,8 @@ func (b BackendLDAP) ListUnits() (unit.List, error) {
 	units := make([]unit.Unit, len(sr.Entries))
 	for idx, entry := range sr.Entries {
 		units[idx] = unit.NewUnit(
-			entry.GetAttributeValue("ou"),
-			entry.GetAttributeValue("description"),
+			entry.GetAttributeValue(fieldNames["id"]),
+			entry.GetAttributeValue(fieldNames["description"]),
 		)
 	}
 
@@ -120,8 +120,8 @@ func (b BackendLDAP) ListUnits() (unit.List, error) {
 }
 
 // GetUnit returns a specific unit with id.
-func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
-	sr, err := b.search(b.baseDN, "(ou="+id+")", "ou", "description")
+func (b BackendLDAP) GetUnit(id string, object string, fieldNames map[string]string) (unit.Unit, error) {
+	sr, err := b.search(b.baseDN, "("+fieldNames["id"]+"="+id+")", b.fieldMapToArray(fieldNames)...)
 	if err != nil {
 		return nil, err
 	}
@@ -137,19 +137,19 @@ func (b BackendLDAP) GetUnit(id string) (unit.Unit, error) {
 	entry := sr.Entries[0]
 
 	return unit.NewUnit(
-		entry.GetAttributeValue("ou"),
-		entry.GetAttributeValue("description"),
+		entry.GetAttributeValue(fieldNames["id"]),
+		entry.GetAttributeValue(fieldNames["description"]),
 	), nil
 }
 
 // CreateUnit creates a new unit in the server.
-func (b BackendLDAP) CreateUnit(u unit.Unit) error {
-	dn := "ou=" + u.ID() + "," + b.baseDN
+func (b BackendLDAP) CreateUnit(u unit.Unit, object string, fieldNames map[string]string) error {
+	dn := fieldNames["id"] + "=" + u.ID() + "," + b.baseDN
 
 	addRequest := ldap.NewAddRequest(dn, []ldap.Control{})
-	addRequest.Attribute("objectClass", []string{"organizationalUnit"})
-	addRequest.Attribute("ou", []string{u.ID()})
-	addRequest.Attribute("description", []string{u.Description()})
+	addRequest.Attribute("objectClass", []string{object})
+	addRequest.Attribute(fieldNames["id"], []string{u.ID()})
+	addRequest.Attribute(fieldNames["description"], []string{u.Description()})
 
 	err := b.conn.Add(addRequest)
 	if err != nil {
@@ -159,7 +159,7 @@ func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 	dnUsers := b.userUnit + dn
 
 	addRequest = ldap.NewAddRequest(dnUsers, []ldap.Control{})
-	addRequest.Attribute("objectClass", []string{"organizationalUnit"})
+	addRequest.Attribute("objectClass", []string{object})
 
 	err = b.conn.Add(addRequest)
 	if err != nil {
@@ -169,7 +169,7 @@ func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 	dnGroups := b.groupUnit + dn
 
 	addRequest = ldap.NewAddRequest(dnGroups, []ldap.Control{})
-	addRequest.Attribute("objectClass", []string{"organizationalUnit"})
+	addRequest.Attribute("objectClass", []string{object})
 
 	err = b.conn.Add(addRequest)
 	if err != nil {
@@ -180,11 +180,11 @@ func (b BackendLDAP) CreateUnit(u unit.Unit) error {
 }
 
 // UpdateUnit modify an existing unit.
-func (b BackendLDAP) UpdateUnit(u unit.Unit) error {
-	dn := "ou=" + u.ID() + "," + b.baseDN
+func (b BackendLDAP) UpdateUnit(u unit.Unit, object string, fieldNames map[string]string) error {
+	dn := fieldNames["id"] + "=" + u.ID() + "," + b.baseDN
 
 	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
-	modRequest.Replace("description", []string{u.Description()})
+	modRequest.Replace(fieldNames["description"], []string{u.Description()})
 
 	err := b.conn.Modify(modRequest)
 	if err != nil {
@@ -195,8 +195,8 @@ func (b BackendLDAP) UpdateUnit(u unit.Unit) error {
 }
 
 // AppendUnit add attributes to the unit with id.
-func (b BackendLDAP) AppendUnit(u unit.Unit) error {
-	dn := "ou=" + u.ID() + "," + b.baseDN
+func (b BackendLDAP) AppendUnit(u unit.Unit, object string, fieldNames map[string]string) error {
+	dn := fieldNames["id"] + "=" + u.ID() + "," + b.baseDN
 
 	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
 	// nothing to add on this object
@@ -210,8 +210,8 @@ func (b BackendLDAP) AppendUnit(u unit.Unit) error {
 }
 
 // RemoveUnit remove attributes from the unit with id.
-func (b BackendLDAP) RemoveUnit(u unit.Unit) error {
-	dn := "ou=" + u.ID() + "," + b.baseDN
+func (b BackendLDAP) RemoveUnit(u unit.Unit, object string, fieldNames map[string]string) error {
+	dn := fieldNames["id"] + "=" + u.ID() + "," + b.baseDN
 
 	modRequest := ldap.NewModifyRequest(dn, []ldap.Control{})
 	// nothing to remove on this object
@@ -225,22 +225,22 @@ func (b BackendLDAP) RemoveUnit(u unit.Unit) error {
 }
 
 // DeleteUnit deletes a unit.
-func (b BackendLDAP) DeleteUnit(id string) error {
-	dnUsers := b.userUnit + "ou=" + id + "," + b.baseDN
+func (b BackendLDAP) DeleteUnit(id string, object string, fieldNames map[string]string) error {
+	dnUsers := b.userUnit + fieldNames["id"] + "=" + id + "," + b.baseDN
 	delRequest := ldap.NewDelRequest(dnUsers, []ldap.Control{})
 	err := b.conn.Del(delRequest)
 	if err != nil && !ldap.IsErrorWithCode(err, 32) {
 		return err
 	}
 
-	dnGroups := b.groupUnit + "ou=" + id + "," + b.baseDN
+	dnGroups := b.groupUnit + fieldNames["id"] + "=" + id + "," + b.baseDN
 	delRequest = ldap.NewDelRequest(dnGroups, []ldap.Control{})
 	err = b.conn.Del(delRequest)
 	if err != nil && !ldap.IsErrorWithCode(err, 32) {
 		return err
 	}
 
-	dn := "ou=" + id + "," + b.baseDN
+	dn := fieldNames["id"] + "=" + id + "," + b.baseDN
 	delRequest = ldap.NewDelRequest(dn, []ldap.Control{})
 	err = b.conn.Del(delRequest)
 	if err != nil && !ldap.IsErrorWithCode(err, 32) {
@@ -657,6 +657,14 @@ func (b BackendLDAP) RemoveGroup(g group.Group) error {
 	}
 
 	return nil
+}
+
+func (b BackendLDAP) fieldMapToArray(m map[string]string) []string {
+	a := []string{}
+	for _, f := range m {
+		a = append(a, f)
+	}
+	return a
 }
 
 func (b BackendLDAP) search(dn string, filter string, attributes ...string) (*ldap.SearchResult, error) {

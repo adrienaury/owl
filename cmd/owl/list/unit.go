@@ -22,7 +22,15 @@ func initUnitCommand(parentCmd *cobra.Command) {
 		Example: fmt.Sprintf("  %[1]s list unit", parentCmd.Root().Name()),
 		Args:    cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			units, err := unitDriver.List()
+			policyName := curRealm.Policy()
+
+			policy, err := policyDriver.Get(policyName)
+			if err != nil {
+				cmd.PrintErrln(err)
+				os.Exit(1)
+			}
+
+			units, err := unitDriver.List(policy.Objects()["unit"])
 			if err != nil {
 				cmd.PrintErrln(err)
 				os.Exit(1)

@@ -7,6 +7,7 @@ import (
 
 	"github.com/adrienaury/owl/cmd/owl/session"
 	"github.com/adrienaury/owl/pkg/domain/credentials"
+	"github.com/adrienaury/owl/pkg/domain/policy"
 	"github.com/adrienaury/owl/pkg/domain/realm"
 	"github.com/adrienaury/owl/pkg/domain/unit"
 	"github.com/spf13/cobra"
@@ -17,13 +18,18 @@ var (
 	unitDriver        unit.Driver
 	realmDriver       realm.Driver
 	credentialsDriver credentials.Driver
+	policyDriver      policy.Driver
+
+	// init
+	curRealm realm.Realm
 )
 
 // SetDrivers inject required domain drivers in the command.
-func SetDrivers(u unit.Driver, r realm.Driver, c credentials.Driver) {
+func SetDrivers(u unit.Driver, r realm.Driver, c credentials.Driver, pold policy.Driver) {
 	unitDriver = u
 	realmDriver = r
 	credentialsDriver = c
+	policyDriver = pold
 }
 
 // SetSession inject the global session in the command.
@@ -49,7 +55,15 @@ func InitCommand(parentCmd *cobra.Command) {
 					globalSession.Unit = ""
 					cmd.PrintErrf("Using default unit for next commands.")
 				} else {
-					unit, err := unitDriver.Get(id)
+					policyName := curRealm.Policy()
+
+					policy, err := policyDriver.Get(policyName)
+					if err != nil {
+						cmd.PrintErrln(err)
+						os.Exit(1)
+					}
+
+					unit, err := unitDriver.Get(id, policy.Objects()["unit"])
 					if err != nil {
 						cmd.PrintErrln(err)
 						os.Exit(1)
@@ -93,19 +107,20 @@ func initCredentials(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	realm, err := realmDriver.Get(flagRealm.Value.String())
+	var err error
+	curRealm, err = realmDriver.Get(flagRealm.Value.String())
 	if err != nil {
 		cmd.PrintErrln(err)
 		os.Exit(1)
 	}
 
-	if realm == nil {
+	if curRealm == nil {
 		cmd.PrintErrf("No realm with id '%v'.", flagRealm.Value.String())
 		cmd.PrintErrln()
 		os.Exit(1)
 	}
 
-	creds, err := credentialsDriver.Get(realm.URL(), realm.Username())
+	creds, err := credentialsDriver.Get(curRealm.URL(), curRealm.Username())
 	if err != nil {
 		cmd.PrintErrln(err)
 		os.Exit(1)

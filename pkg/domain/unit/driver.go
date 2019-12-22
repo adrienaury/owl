@@ -16,8 +16,8 @@ func NewDriver(backend Backend) Driver {
 }
 
 // List all units.
-func (d Driver) List() (List, error) {
-	list, err := d.backend.ListUnits()
+func (d Driver) List(p Policy) (List, error) {
+	list, err := d.backend.ListUnits(p.BackendObject(), p.BackendFields())
 	if err != nil {
 		return nil, err
 	}
@@ -25,8 +25,8 @@ func (d Driver) List() (List, error) {
 }
 
 // Get the unit with id.
-func (d Driver) Get(id string) (Unit, error) {
-	unit, err := d.backend.GetUnit(id)
+func (d Driver) Get(id string, p Policy) (Unit, error) {
+	unit, err := d.backend.GetUnit(id, p.BackendObject(), p.BackendFields())
 	if err != nil {
 		return nil, err
 	}
@@ -34,8 +34,8 @@ func (d Driver) Get(id string) (Unit, error) {
 }
 
 // Create a new unit.
-func (d Driver) Create(u Unit) error {
-	err := d.backend.CreateUnit(u)
+func (d Driver) Create(u Unit, p Policy) error {
+	err := d.backend.CreateUnit(u, p.BackendObject(), p.BackendFields())
 	if err != nil {
 		return err
 	}
@@ -43,8 +43,8 @@ func (d Driver) Create(u Unit) error {
 }
 
 // Apply new attributes to an existing unit, or create a new one.
-func (d Driver) Apply(u Unit) (updated bool, err error) {
-	unit, err := d.backend.GetUnit(u.ID())
+func (d Driver) Apply(u Unit, p Policy) (updated bool, err error) {
+	unit, err := d.backend.GetUnit(u.ID(), p.BackendObject(), p.BackendFields())
 	if err != nil {
 		return false, err
 	}
@@ -52,9 +52,9 @@ func (d Driver) Apply(u Unit) (updated bool, err error) {
 	exists := false
 	if unit != nil {
 		exists = true
-		err = d.backend.UpdateUnit(u)
+		err = d.backend.UpdateUnit(u, p.BackendObject(), p.BackendFields())
 	} else {
-		err = d.backend.CreateUnit(u)
+		err = d.backend.CreateUnit(u, p.BackendObject(), p.BackendFields())
 	}
 
 	if err != nil {
@@ -65,8 +65,8 @@ func (d Driver) Apply(u Unit) (updated bool, err error) {
 }
 
 // Update the unit with id.
-func (d Driver) Update(u Unit) error {
-	unit, err := d.backend.GetUnit(u.ID())
+func (d Driver) Update(u Unit, p Policy) error {
+	unit, err := d.backend.GetUnit(u.ID(), p.BackendObject(), p.BackendFields())
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (d Driver) Update(u Unit) error {
 	}
 	merged := NewUnit(u.ID(), description)
 
-	err = d.backend.UpdateUnit(merged)
+	err = d.backend.UpdateUnit(merged, p.BackendObject(), p.BackendFields())
 	if err != nil {
 		return err
 	}
@@ -90,14 +90,14 @@ func (d Driver) Update(u Unit) error {
 }
 
 // Upsert the unit with id (update or create).
-func (d Driver) Upsert(u Unit) (updated bool, err error) {
-	unit, err := d.backend.GetUnit(u.ID())
+func (d Driver) Upsert(u Unit, p Policy) (updated bool, err error) {
+	unit, err := d.backend.GetUnit(u.ID(), p.BackendObject(), p.BackendFields())
 	if err != nil {
 		return false, err
 	}
 
 	if unit == nil {
-		return false, d.Create(u)
+		return false, d.Create(u, p)
 	}
 
 	description := u.Description()
@@ -106,7 +106,7 @@ func (d Driver) Upsert(u Unit) (updated bool, err error) {
 	}
 	merged := NewUnit(u.ID(), description)
 
-	err = d.backend.UpdateUnit(merged)
+	err = d.backend.UpdateUnit(merged, p.BackendObject(), p.BackendFields())
 	if err != nil {
 		return false, err
 	}
@@ -115,8 +115,8 @@ func (d Driver) Upsert(u Unit) (updated bool, err error) {
 }
 
 // Append attributes to the unit with id.
-func (d Driver) Append(u Unit) error {
-	err := d.backend.AppendUnit(u)
+func (d Driver) Append(u Unit, p Policy) error {
+	err := d.backend.AppendUnit(u, p.BackendObject(), p.BackendFields())
 	if err != nil {
 		return err
 	}
@@ -124,8 +124,8 @@ func (d Driver) Append(u Unit) error {
 }
 
 // Remove attributes from the unit with id.
-func (d Driver) Remove(u Unit) error {
-	err := d.backend.RemoveUnit(u)
+func (d Driver) Remove(u Unit, p Policy) error {
+	err := d.backend.RemoveUnit(u, p.BackendObject(), p.BackendFields())
 	if err != nil {
 		return err
 	}
@@ -133,8 +133,8 @@ func (d Driver) Remove(u Unit) error {
 }
 
 // Delete the unit with id.
-func (d Driver) Delete(id string) error {
-	err := d.backend.DeleteUnit(id)
+func (d Driver) Delete(id string, p Policy) error {
+	err := d.backend.DeleteUnit(id, p.BackendObject(), p.BackendFields())
 	if err != nil {
 		return err
 	}
